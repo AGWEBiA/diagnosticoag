@@ -43,42 +43,42 @@ const TESTIMONIALS = [
   {
     videoId: 'QaFabNdcbd0',
     name: 'Anderson Maisse',
-    role: 'Infoprodutor',
+    role: 'Contador e CEO da AM Contabilidade',
     quote:
       'Identifiquei que estava gastando 60% do meu orçamento em um canal que rendia apenas 10%. Redirecionei e meu faturamento cresceu 3x em 3 meses.',
   },
   {
     videoId: '88fQ3R35CuY',
     name: 'Andreza Emerick',
-    role: 'Consultora de Marketing',
+    role: 'Contadora',
     quote:
       'O relatório foi tão preciso que parecia que Anderson tinha passado um mês dentro da minha empresa. Cada recomendação foi exatamente o que eu precisava ouvir.',
   },
   {
     videoId: 'DOfdl5OwADY',
     name: 'Anderson Souza',
-    role: 'Dono de Agência',
+    role: 'Contador e Mentor',
     quote:
       'Foi a melhor decisão que tomei. A reunião com Anderson me deu clareza sobre o que fazer nos próximos 12 meses. Já implementei 3 recomendações e estou vendo resultado.',
   },
   {
     videoId: 'hcPxFHwaDY8',
     name: 'Bruno Nascimento',
-    role: 'Infoprodutor',
+    role: 'Contador e CEO da AJ Contabilidade',
     quote:
       'Recomendo para todo empreendedor digital que quer crescer. Não é um gasto, é um investimento que retorna em dias.',
   },
   {
     videoId: 'RDnGb3_7gFk',
     name: 'Marta Giove',
-    role: 'Empreendedora Digital',
+    role: 'CEO do Grupo DPG',
     quote:
       'Saí da reunião com um plano executável. Em poucas semanas já estava colhendo os primeiros resultados das mudanças propostas.',
   },
   {
     videoId: 'Bb7ZBSonozo',
     name: 'Matheus Simões',
-    role: 'Infoprodutor',
+    role: 'Diretor Nacional de Educação do SENAI',
     quote:
       'A análise mostrou exatamente onde eu estava perdendo dinheiro e qual o próximo passo. Direto ao ponto, sem enrolação.',
   },
@@ -585,17 +585,6 @@ const Landing = () => {
                   </CardContent>
                 </Card>
               ))}
-            </div>
-            <div className="mt-10 text-center">
-              <Button asChild variant="outline" size="lg">
-                <a
-                  href="https://www.youtube.com/playlist?list=PLUa7HEmRsnU6_ORdNTA6H4TXixJ4N5m5R"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Youtube className="mr-2 h-4 w-4" /> Ver todos os depoimentos no YouTube
-                </a>
-              </Button>
             </div>
           </div>
         </section>
