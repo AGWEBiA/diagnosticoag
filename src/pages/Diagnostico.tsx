@@ -1,13 +1,14 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, CheckCircle2, Lock, Sparkles } from 'lucide-react';
 import { Pergunta, getEtapasPorSegmento, TOTAL_ETAPAS } from '@/config/diagnosticoSchema';
 import { PerguntaField } from '@/components/diagnostico/PerguntaField';
 import { useDiagnosticoRascunho, Respostas } from '@/hooks/useDiagnosticoRascunho';
+import { useCreditos } from '@/hooks/useCreditos';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserAvatarMenu } from '@/components/UserAvatarMenu';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +44,7 @@ const Diagnostico = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { state, loading, saving, salvarEtapa, finalizar } = useDiagnosticoRascunho();
+  const { creditos, loading: loadingCreditos } = useCreditos();
 
   const [respostas, setRespostas] = useState<Respostas>({});
   const [etapaIdx, setEtapaIdx] = useState(0);
@@ -111,15 +113,31 @@ const Diagnostico = () => {
   const handleFinalizar = async () => {
     if (!validarEtapa()) return;
     setSubmitting(true);
-    await salvarEtapa(respostas, etapaIdx + 1);
+    const idSalvo = await salvarEtapa(respostas, etapaIdx + 1);
+    const targetId = idSalvo ?? state.id;
+
+    if (targetId) {
+      const { data: ok, error: credErr } = await supabase.rpc('consumir_credito_diagnostico', {
+        _diagnostico_id: targetId,
+      });
+      if (credErr || ok === false) {
+        setSubmitting(false);
+        toast({
+          title: 'Sem diagnósticos disponíveis',
+          description: 'Solicite um diagnóstico para continuar.',
+          variant: 'destructive',
+        });
+        navigate('/comprar');
+        return;
+      }
+    }
+
     const diagId = await finalizar();
     setSubmitting(false);
     if (diagId) {
       setRespostas({});
       setEtapaIdx(0);
-      // Aguarda realtime confirmar status='concluido' antes de redirecionar
       setAguardandoIA(diagId);
-      // Fallback: se realtime não chegar, redireciona em 8s mesmo assim
       setTimeout(() => {
         setAguardandoIA((cur) => {
           if (cur === diagId) {
@@ -174,6 +192,44 @@ const Diagnostico = () => {
         <p className="text-sm text-muted-foreground max-w-sm">
           A IA está analisando suas respostas. Você será redirecionado automaticamente assim que terminar.
         </p>
+      </div>
+    );
+  }
+
+  // Paywall: usuário sem créditos e sem rascunho em andamento
+  if (!loading && !loadingCreditos && creditos === 0 && !state.id) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b">
+          <div className="container mx-auto flex items-center justify-between px-4 py-4">
+            <h1 className="text-lg font-semibold">Diagnóstico de Negócio</h1>
+            <UserAvatarMenu />
+          </div>
+        </header>
+        <main className="container mx-auto max-w-xl px-4 py-16">
+          <Card>
+            <CardHeader className="items-center text-center">
+              <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Lock className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle>Solicite seu diagnóstico</CardTitle>
+              <CardDescription>
+                Você ainda não tem um diagnóstico disponível. Escolha um plano para liberar sua análise estratégica completa.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-3">
+              <Button asChild className="w-full">
+                <Link to="/comprar">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Ver opções de diagnóstico
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" className="w-full">
+                <Link to="/perfil">Voltar ao perfil</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }

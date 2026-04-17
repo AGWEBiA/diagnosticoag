@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, ExternalLink } from 'lucide-react';
+import { GatewaysWebhooksCard } from '@/components/admin/GatewaysWebhooksCard';
 
 interface AgendamentoConfig {
   url: string;
@@ -17,6 +18,11 @@ interface AgendamentoConfig {
 
 interface IaAlertasConfig {
   custo_diario_limite_usd: number;
+}
+
+interface PagamentoConfig {
+  titulo: string;
+  descricao: string;
 }
 
 const DEFAULT: AgendamentoConfig = {
@@ -29,21 +35,28 @@ const DEFAULT_IA: IaAlertasConfig = {
   custo_diario_limite_usd: 1,
 };
 
+const DEFAULT_PAG: PagamentoConfig = {
+  titulo: 'Solicite seu diagnóstico',
+  descricao: 'Cada diagnóstico inclui análise estratégica completa do seu negócio digital com IA vertical.',
+};
+
 const ConfiguracoesAdmin = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [config, setConfig] = useState<AgendamentoConfig>(DEFAULT);
   const [iaAlertas, setIaAlertas] = useState<IaAlertasConfig>(DEFAULT_IA);
+  const [pagamento, setPagamento] = useState<PagamentoConfig>(DEFAULT_PAG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingIa, setSavingIa] = useState(false);
+  const [savingPag, setSavingPag] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
         .from('app_settings')
         .select('key, value')
-        .in('key', ['agendamento', 'ia_alertas']);
+        .in('key', ['agendamento', 'ia_alertas', 'pagamento']);
       if (!error && data) {
         for (const row of data) {
           if (row.key === 'agendamento') {
@@ -52,6 +65,9 @@ const ConfiguracoesAdmin = () => {
           } else if (row.key === 'ia_alertas') {
             const v = (row.value ?? {}) as Partial<IaAlertasConfig>;
             setIaAlertas({ ...DEFAULT_IA, ...v });
+          } else if (row.key === 'pagamento') {
+            const v = (row.value ?? {}) as Partial<PagamentoConfig>;
+            setPagamento({ ...DEFAULT_PAG, ...v });
           }
         }
       }
@@ -114,6 +130,23 @@ const ConfiguracoesAdmin = () => {
     toast({ title: 'Limite de custo IA atualizado' });
   };
 
+  const salvarPagamento = async () => {
+    setSavingPag(true);
+    const { error } = await supabase.from('app_settings').upsert([
+      {
+        key: 'pagamento',
+        value: pagamento as unknown as never,
+        updated_by: user?.id ?? null,
+      },
+    ]);
+    setSavingPag(false);
+    if (error) {
+      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Página de compra atualizada' });
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -126,9 +159,7 @@ const ConfiguracoesAdmin = () => {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold">Configurações</h1>
-        <p className="text-sm text-muted-foreground">
-          Ajustes globais da plataforma.
-        </p>
+        <p className="text-sm text-muted-foreground">Ajustes globais da plataforma.</p>
       </div>
 
       <Card>
@@ -191,6 +222,44 @@ const ConfiguracoesAdmin = () => {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">Página de compra (/comprar)</CardTitle>
+          <CardDescription>
+            Texto exibido aos usuários que precisam comprar um diagnóstico. Os produtos em si são gerenciados na seção <strong>Produtos</strong>.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="cfg-pag-titulo">Título</Label>
+            <Input
+              id="cfg-pag-titulo"
+              value={pagamento.titulo}
+              onChange={(e) => setPagamento({ ...pagamento, titulo: e.target.value })}
+              maxLength={120}
+            />
+          </div>
+          <div>
+            <Label htmlFor="cfg-pag-desc">Descrição</Label>
+            <Textarea
+              id="cfg-pag-desc"
+              rows={3}
+              value={pagamento.descricao}
+              onChange={(e) => setPagamento({ ...pagamento, descricao: e.target.value })}
+              maxLength={500}
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={salvarPagamento} disabled={savingPag}>
+              {savingPag ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Salvar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <GatewaysWebhooksCard />
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">Alertas de IA</CardTitle>
           <CardDescription>
             Define o limite de custo diário em USD para uso da IA. Quando o consumo do dia
@@ -213,17 +282,11 @@ const ConfiguracoesAdmin = () => {
                 })
               }
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Use 0 para desativar o alerta.
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Use 0 para desativar o alerta.</p>
           </div>
           <div className="flex justify-end">
             <Button onClick={salvarIa} disabled={savingIa}>
-              {savingIa ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-2 h-4 w-4" />
-              )}
+              {savingIa ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Salvar
             </Button>
           </div>

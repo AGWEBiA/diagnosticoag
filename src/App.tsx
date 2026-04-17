@@ -11,6 +11,7 @@ import Landing from "./pages/Landing";
 import Perfil from "./pages/Perfil";
 import Diagnostico from "./pages/Diagnostico";
 import Agendar from "./pages/Agendar";
+import Comprar from "./pages/Comprar";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
@@ -23,6 +24,7 @@ import UsuariosAdmin from "./pages/admin/UsuariosAdmin";
 import LogsIaAdmin from "./pages/admin/LogsIaAdmin";
 import ConfiguracoesAdmin from "./pages/admin/ConfiguracoesAdmin";
 import MetricasAdmin from "./pages/admin/MetricasAdmin";
+import ProdutosAdmin from "./pages/admin/ProdutosAdmin";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +60,14 @@ const App = () => (
                 }
               />
               <Route
+                path="/comprar"
+                element={
+                  <ProtectedRoute>
+                    <Comprar />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/agendar/:id"
                 element={
                   <ProtectedRoute>
@@ -80,6 +90,7 @@ const App = () => (
                 <Route path="knowledge" element={<KnowledgeAdmin />} />
                 <Route path="diagnosticos" element={<DiagnosticosAdmin />} />
                 <Route path="usuarios" element={<UsuariosAdmin />} />
+                <Route path="produtos" element={<ProdutosAdmin />} />
                 <Route path="logs" element={<LogsIaAdmin />} />
                 <Route path="metricas" element={<MetricasAdmin />} />
                 <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
