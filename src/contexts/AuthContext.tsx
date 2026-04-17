@@ -8,6 +8,7 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  rolesLoading: boolean;
   roles: AppRole[];
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
@@ -115,6 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         session,
         loading,
+        rolesLoading,
         roles,
         signIn,
         signUp,
