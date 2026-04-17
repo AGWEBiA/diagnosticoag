@@ -15,29 +15,45 @@ interface AgendamentoConfig {
   descricao: string;
 }
 
+interface IaAlertasConfig {
+  custo_diario_limite_usd: number;
+}
+
 const DEFAULT: AgendamentoConfig = {
   url: '',
   titulo: 'Agende sua reunião',
   descricao: 'Seu diagnóstico foi enviado. Escolha um horário para revisarmos o resultado juntos.',
 };
 
+const DEFAULT_IA: IaAlertasConfig = {
+  custo_diario_limite_usd: 1,
+};
+
 const ConfiguracoesAdmin = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [config, setConfig] = useState<AgendamentoConfig>(DEFAULT);
+  const [iaAlertas, setIaAlertas] = useState<IaAlertasConfig>(DEFAULT_IA);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingIa, setSavingIa] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
         .from('app_settings')
-        .select('value')
-        .eq('key', 'agendamento')
-        .maybeSingle();
+        .select('key, value')
+        .in('key', ['agendamento', 'ia_alertas']);
       if (!error && data) {
-        const v = (data.value ?? {}) as Partial<AgendamentoConfig>;
-        setConfig({ ...DEFAULT, ...v });
+        for (const row of data) {
+          if (row.key === 'agendamento') {
+            const v = (row.value ?? {}) as Partial<AgendamentoConfig>;
+            setConfig({ ...DEFAULT, ...v });
+          } else if (row.key === 'ia_alertas') {
+            const v = (row.value ?? {}) as Partial<IaAlertasConfig>;
+            setIaAlertas({ ...DEFAULT_IA, ...v });
+          }
+        }
       }
       setLoading(false);
     })();
@@ -68,6 +84,34 @@ const ConfiguracoesAdmin = () => {
       return;
     }
     toast({ title: 'Configurações salvas' });
+  };
+
+  const salvarIa = async () => {
+    const limite = Number(iaAlertas.custo_diario_limite_usd);
+    if (!Number.isFinite(limite) || limite < 0) {
+      toast({
+        title: 'Limite inválido',
+        description: 'Informe um número maior ou igual a zero.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setSavingIa(true);
+    const { error } = await supabase
+      .from('app_settings')
+      .upsert([
+        {
+          key: 'ia_alertas',
+          value: { custo_diario_limite_usd: limite } as unknown as never,
+          updated_by: user?.id ?? null,
+        },
+      ]);
+    setSavingIa(false);
+    if (error) {
+      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Limite de custo IA atualizado' });
   };
 
   if (loading) {
@@ -139,6 +183,47 @@ const ConfiguracoesAdmin = () => {
           <div className="flex justify-end">
             <Button onClick={salvar} disabled={saving}>
               {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Salvar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Alertas de IA</CardTitle>
+          <CardDescription>
+            Define o limite de custo diário em USD para uso da IA. Quando o consumo do dia
+            ultrapassar este valor, um alerta será exibido em <strong>Métricas</strong>.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="max-w-xs">
+            <Label htmlFor="cfg-custo-limite">Limite de custo diário (USD)</Label>
+            <Input
+              id="cfg-custo-limite"
+              type="number"
+              min={0}
+              step="0.01"
+              value={iaAlertas.custo_diario_limite_usd}
+              onChange={(e) =>
+                setIaAlertas({
+                  ...iaAlertas,
+                  custo_diario_limite_usd: Number(e.target.value),
+                })
+              }
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Use 0 para desativar o alerta.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={salvarIa} disabled={savingIa}>
+              {savingIa ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               Salvar
             </Button>
           </div>

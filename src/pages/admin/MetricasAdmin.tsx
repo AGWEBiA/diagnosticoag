@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   ChartContainer,
   ChartTooltip,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { AlertTriangle, DollarSign, GitBranch, ShieldAlert } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 const fmtUsd = (n: number) =>
@@ -56,6 +58,20 @@ const MetricasAdmin = () => {
         .limit(10000);
       if (error) throw error;
       return data ?? [];
+    },
+  });
+
+  const limiteQuery = useQuery({
+    queryKey: ['admin-metricas', 'limite-custo-diario'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'ia_alertas')
+        .maybeSingle();
+      if (error) throw error;
+      const v = (data?.value ?? {}) as { custo_diario_limite_usd?: number };
+      return Number(v.custo_diario_limite_usd ?? 0);
     },
   });
 
@@ -140,8 +156,12 @@ const MetricasAdmin = () => {
       .map(([motivo, total]) => ({ motivo, total }))
       .sort((a, b) => b.total - a.total);
 
+    const hojeKey = today.toISOString().slice(0, 10);
+    const custoHoje = byDay.get(hojeKey)?.custo ?? 0;
+
     return {
       custoTotal,
+      custoHoje,
       opsTotal,
       taxaSucesso,
       taxaFallback,
@@ -165,6 +185,12 @@ const MetricasAdmin = () => {
     fallback: { label: 'Fallback', color: 'hsl(var(--primary))' },
   };
 
+  const limite = limiteQuery.data ?? 0;
+  const limiteAtivo = limite > 0;
+  const excedeu = limiteAtivo && agg.custoHoje > limite;
+  const proximo = limiteAtivo && !excedeu && agg.custoHoje >= limite * 0.8;
+  const percentUso = limiteAtivo ? (agg.custoHoje / limite) * 100 : 0;
+
   return (
     <div className="space-y-6">
       <div>
@@ -174,13 +200,42 @@ const MetricasAdmin = () => {
         </p>
       </div>
 
+      {limiteAtivo && (excedeu || proximo) && (
+        <Alert variant={excedeu ? 'destructive' : 'default'}>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>
+            {excedeu
+              ? 'Limite diário de custo de IA excedido'
+              : 'Aproximando do limite diário de custo de IA'}
+          </AlertTitle>
+          <AlertDescription className="space-y-1">
+            <p>
+              Hoje: <strong>{fmtUsd(agg.custoHoje)}</strong> de{' '}
+              <strong>{fmtUsd(limite)}</strong> ({percentUso.toFixed(1)}%).
+            </p>
+            <p className="text-xs">
+              Ajuste o limite em{' '}
+              <Link to="/admin/configuracoes" className="underline">
+                Configurações → Alertas de IA
+              </Link>
+              .
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          title="Custo total"
+          title="Custo total (30d)"
           value={fmtUsd(agg.custoTotal)}
           icon={DollarSign}
           loading={isLoading}
-          hint={`${agg.opsTotal} operações`}
+          hint={
+            limiteAtivo
+              ? `Hoje: ${fmtUsd(agg.custoHoje)} / ${fmtUsd(limite)}`
+              : `Hoje: ${fmtUsd(agg.custoHoje)} • limite não definido`
+          }
+          tone={excedeu ? 'warning' : 'default'}
         />
         <KpiCard
           title="Taxa de fallback"
