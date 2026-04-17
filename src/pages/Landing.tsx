@@ -65,6 +65,9 @@ const Landing = () => {
             Diagnóstico IA
           </Link>
           <nav className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link to="/como-funciona">Como funciona</Link>
+            </Button>
             {user ? (
               <>
                 <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
