@@ -28,6 +28,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DiagnosticoChat } from '@/components/admin/DiagnosticoChat';
 import {
   Pagination,
   PaginationContent,
@@ -283,46 +285,57 @@ const DiagnosticosAdmin = () => {
               {viewing?.score != null && ` · score ${viewing.score}`}
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-[70vh] space-y-4 overflow-auto">
-            {viewing?.resumo_executivo && (
-              <section>
-                <h3 className="mb-1 text-sm font-semibold">Resumo executivo</h3>
-                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                  {viewing.resumo_executivo}
-                </p>
-              </section>
-            )}
-            {recos.length > 0 && (
-              <section>
-                <h3 className="mb-2 text-sm font-semibold">Recomendações</h3>
-                <ol className="space-y-2">
-                  {recos.map((r, i) => (
-                    <li key={i} className="rounded-md border p-2 text-sm">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium">
-                          {r.prioridade ?? i + 1}. {r.titulo ?? '(sem título)'}
-                        </span>
-                        {r.impacto && (
-                          <Badge variant="outline" className="text-xs">
-                            {r.impacto}
-                          </Badge>
+          <Tabs defaultValue="resumo" className="w-full">
+            <TabsList>
+              <TabsTrigger value="resumo">Resumo</TabsTrigger>
+              <TabsTrigger value="chat">Chat IA</TabsTrigger>
+              <TabsTrigger value="raw">Respostas</TabsTrigger>
+            </TabsList>
+            <TabsContent value="resumo" className="max-h-[70vh] space-y-4 overflow-auto">
+              {viewing?.resumo_executivo ? (
+                <section>
+                  <h3 className="mb-1 text-sm font-semibold">Resumo executivo</h3>
+                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                    {viewing.resumo_executivo}
+                  </p>
+                </section>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sem resumo executivo gerado ainda.</p>
+              )}
+              {recos.length > 0 && (
+                <section>
+                  <h3 className="mb-2 text-sm font-semibold">Recomendações</h3>
+                  <ol className="space-y-2">
+                    {recos.map((r, i) => (
+                      <li key={i} className="rounded-md border p-2 text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium">
+                            {r.prioridade ?? i + 1}. {r.titulo ?? '(sem título)'}
+                          </span>
+                          {r.impacto && (
+                            <Badge variant="outline" className="text-xs">
+                              {r.impacto}
+                            </Badge>
+                          )}
+                        </div>
+                        {r.descricao && (
+                          <p className="mt-1 text-xs text-muted-foreground">{r.descricao}</p>
                         )}
-                      </div>
-                      {r.descricao && (
-                        <p className="mt-1 text-xs text-muted-foreground">{r.descricao}</p>
-                      )}
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
-            <section>
-              <h3 className="mb-1 text-sm font-semibold">Respostas (raw)</h3>
-              <pre className="max-h-64 overflow-auto rounded-md border bg-muted/30 p-2 text-xs">
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+            </TabsContent>
+            <TabsContent value="chat">
+              {viewing && <DiagnosticoChat diagnosticoId={viewing.id} />}
+            </TabsContent>
+            <TabsContent value="raw">
+              <pre className="max-h-[60vh] overflow-auto rounded-md border bg-muted/30 p-2 text-xs">
                 {JSON.stringify(viewing?.respostas ?? {}, null, 2)}
               </pre>
-            </section>
-          </div>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>
