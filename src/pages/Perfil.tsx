@@ -39,7 +39,9 @@ const Perfil = () => {
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileQuery = useQuery({
     queryKey: ['perfil', user?.id],
