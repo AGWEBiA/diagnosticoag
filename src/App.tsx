@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import Diagnostico from "./pages/Diagnostico";
-import Resultado from "./pages/Resultado";
+import Agendar from "./pages/Agendar";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
@@ -15,7 +15,10 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminHome from "./pages/admin/AdminHome";
 import KnowledgeAdmin from "./pages/admin/KnowledgeAdmin";
-import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
+import DiagnosticosAdmin from "./pages/admin/DiagnosticosAdmin";
+import UsuariosAdmin from "./pages/admin/UsuariosAdmin";
+import LogsIaAdmin from "./pages/admin/LogsIaAdmin";
+import ConfiguracoesAdmin from "./pages/admin/ConfiguracoesAdmin";
 
 const queryClient = new QueryClient();
 
@@ -32,10 +35,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
-            <Route
-              path="/"
-              element={<Navigate to="/diagnostico" replace />}
-            />
+            <Route path="/" element={<Navigate to="/diagnostico" replace />} />
             <Route
               path="/diagnostico"
               element={
@@ -45,13 +45,15 @@ const App = () => (
               }
             />
             <Route
-              path="/resultado/:id"
+              path="/agendar/:id"
               element={
                 <ProtectedRoute>
-                  <Resultado />
+                  <Agendar />
                 </ProtectedRoute>
               }
             />
+            {/* Compat: /resultado/:id agora redireciona para agendar */}
+            <Route path="/resultado/:id" element={<Navigate to="/diagnostico" replace />} />
 
             <Route
               path="/admin"
@@ -63,33 +65,10 @@ const App = () => (
             >
               <Route index element={<AdminHome />} />
               <Route path="knowledge" element={<KnowledgeAdmin />} />
-              <Route
-                path="diagnosticos"
-                element={
-                  <AdminPlaceholder
-                    title="Diagnósticos"
-                    description="Lista de diagnósticos dos usuários (em breve)."
-                  />
-                }
-              />
-              <Route
-                path="usuarios"
-                element={
-                  <AdminPlaceholder
-                    title="Usuários"
-                    description="Gestão de usuários e roles (em breve)."
-                  />
-                }
-              />
-              <Route
-                path="logs"
-                element={
-                  <AdminPlaceholder
-                    title="Logs de IA"
-                    description="Auditoria de operações de IA (em breve)."
-                  />
-                }
-              />
+              <Route path="diagnosticos" element={<DiagnosticosAdmin />} />
+              <Route path="usuarios" element={<UsuariosAdmin />} />
+              <Route path="logs" element={<LogsIaAdmin />} />
+              <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
             </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

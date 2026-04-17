@@ -153,15 +153,14 @@ export function useDiagnosticoRascunho() {
     setSaving(false);
 
     if (fnError) {
-      toast({
-        title: 'Análise IA com erro',
-        description: fnError.message + ' — você pode reprocessar depois.',
-        variant: 'destructive',
-      });
-      return diagId; // navega mesmo assim, status fica em_analise
+      // Análise pode rodar em background; segue para agendamento normalmente
+      console.error('process-diagnostico falhou:', fnError);
     }
 
-    toast({ title: 'Diagnóstico concluído', description: 'Veja o resultado abaixo.' });
+    toast({
+      title: 'Diagnóstico enviado',
+      description: 'Agende um horário para revisarmos seu resultado.',
+    });
     return diagId;
   }, [user, state.id, toast]);
 

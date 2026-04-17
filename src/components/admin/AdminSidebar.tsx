@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardList, Users, Activity, LayoutDashboard } from 'lucide-react';
+import { BookOpen, ClipboardList, Users, Activity, LayoutDashboard, Settings } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -19,6 +19,7 @@ const items = [
   { title: 'Diagnósticos', url: '/admin/diagnosticos', icon: ClipboardList, end: false },
   { title: 'Usuários', url: '/admin/usuarios', icon: Users, end: false },
   { title: 'Logs de IA', url: '/admin/logs', icon: Activity, end: false },
+  { title: 'Configurações', url: '/admin/configuracoes', icon: Settings, end: false },
 ];
 
 export const AdminSidebar = () => {
