@@ -188,6 +188,47 @@ const ConfiguracoesAdmin = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Alertas de IA</CardTitle>
+          <CardDescription>
+            Define o limite de custo diário em USD para uso da IA. Quando o consumo do dia
+            ultrapassar este valor, um alerta será exibido em <strong>Métricas</strong>.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="max-w-xs">
+            <Label htmlFor="cfg-custo-limite">Limite de custo diário (USD)</Label>
+            <Input
+              id="cfg-custo-limite"
+              type="number"
+              min={0}
+              step="0.01"
+              value={iaAlertas.custo_diario_limite_usd}
+              onChange={(e) =>
+                setIaAlertas({
+                  ...iaAlertas,
+                  custo_diario_limite_usd: Number(e.target.value),
+                })
+              }
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Use 0 para desativar o alerta.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={salvarIa} disabled={savingIa}>
+              {savingIa ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Salvar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
