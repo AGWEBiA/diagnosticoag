@@ -118,6 +118,53 @@ export type Database = {
           },
         ]
       }
+      creditos_diagnostico: {
+        Row: {
+          consumido_em: string | null
+          created_at: string
+          diagnostico_id: string | null
+          email_comprador: string | null
+          id: string
+          metadata: Json | null
+          origem: string
+          produto_id: string | null
+          transacao_externa_id: string | null
+          user_id: string
+        }
+        Insert: {
+          consumido_em?: string | null
+          created_at?: string
+          diagnostico_id?: string | null
+          email_comprador?: string | null
+          id?: string
+          metadata?: Json | null
+          origem: string
+          produto_id?: string | null
+          transacao_externa_id?: string | null
+          user_id: string
+        }
+        Update: {
+          consumido_em?: string | null
+          created_at?: string
+          diagnostico_id?: string | null
+          email_comprador?: string | null
+          id?: string
+          metadata?: Json | null
+          origem?: string
+          produto_id?: string | null
+          transacao_externa_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creditos_diagnostico_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos_pagamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diagnosticos: {
         Row: {
           concluido_em: string | null
@@ -349,6 +396,54 @@ export type Database = {
           },
         ]
       }
+      produtos_pagamento: {
+        Row: {
+          ativo: boolean
+          checkout_url: string | null
+          created_at: string
+          creditos_concedidos: number
+          descricao: string | null
+          gateway: string
+          id: string
+          moeda: string | null
+          nome: string
+          oferta_externa_id: string | null
+          preco_centavos: number | null
+          produto_externo_id: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          checkout_url?: string | null
+          created_at?: string
+          creditos_concedidos?: number
+          descricao?: string | null
+          gateway: string
+          id?: string
+          moeda?: string | null
+          nome: string
+          oferta_externa_id?: string | null
+          preco_centavos?: number | null
+          produto_externo_id: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          checkout_url?: string | null
+          created_at?: string
+          creditos_concedidos?: number
+          descricao?: string | null
+          gateway?: string
+          id?: string
+          moeda?: string | null
+          nome?: string
+          oferta_externa_id?: string | null
+          preco_centavos?: number | null
+          produto_externo_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -440,6 +535,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consumir_credito_diagnostico: {
+        Args: { _diagnostico_id: string }
+        Returns: boolean
+      }
+      creditos_disponiveis: { Args: { _user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
