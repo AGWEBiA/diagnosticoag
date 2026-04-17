@@ -448,7 +448,7 @@ const Landing = () => {
                   },
                   {
                     icon: Video,
-                    n: '6 depoimentos reais',
+                    n: 'Depoimentos reais',
                     t: 'em vídeo no YouTube',
                     d: 'Anderson Maisse, Andreza Emerick, Anderson Souza, Bruno Nascimento, Marta Giove e Matheus Simões.',
                   },
