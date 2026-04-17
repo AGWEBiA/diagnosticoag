@@ -1,1 +1,7 @@
 project_id = "zggxtuyzynbrothraiaz"
+
+[functions.ingest-knowledge]
+verify_jwt = false
+
+[functions.search-knowledge]
+verify_jwt = false
