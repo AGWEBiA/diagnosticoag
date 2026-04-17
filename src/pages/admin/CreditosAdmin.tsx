@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Coins, Search, Filter } from 'lucide-react';
+import { ConcederCreditoDialog } from '@/components/admin/ConcederCreditoDialog';
 
 type CreditoRow = {
   id: string;
@@ -112,14 +113,17 @@ const CreditosAdmin = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Coins className="h-6 w-6 text-primary" />
-          Créditos de diagnóstico
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Histórico completo de créditos: origem, comprador e status de uso.
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Coins className="h-6 w-6 text-primary" />
+            Créditos de diagnóstico
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Histórico completo de créditos: origem, comprador e status de uso.
+          </p>
+        </div>
+        <ConcederCreditoDialog />
       </div>
 
       {/* Stats */}
