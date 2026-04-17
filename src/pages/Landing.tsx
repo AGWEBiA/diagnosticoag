@@ -105,7 +105,7 @@ const Landing = () => {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg">
                 <Link to={user ? '/diagnostico' : '/signup'}>
-                  Fazer diagnóstico gratuito
+                  Fazer diagnóstico
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
