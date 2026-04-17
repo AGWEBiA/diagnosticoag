@@ -110,12 +110,12 @@ const Diagnostico = () => {
     if (!validarEtapa()) return;
     setSubmitting(true);
     await salvarEtapa(respostas, etapaIdx + 1);
-    const ok = await finalizar();
+    const diagId = await finalizar();
     setSubmitting(false);
-    if (ok) {
-      // Reset local para o usuário começar outro depois
+    if (diagId) {
       setRespostas({});
       setEtapaIdx(0);
+      navigate(`/resultado/${diagId}`);
     }
   };
 

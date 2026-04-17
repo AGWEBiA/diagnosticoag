@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import Diagnostico from "./pages/Diagnostico";
+import Resultado from "./pages/Resultado";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
@@ -40,6 +41,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Diagnostico />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/resultado/:id"
+              element={
+                <ProtectedRoute>
+                  <Resultado />
                 </ProtectedRoute>
               }
             />
