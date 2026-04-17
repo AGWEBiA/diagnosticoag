@@ -151,8 +151,8 @@ const Landing = () => {
                 },
                 {
                   n: '2',
-                  t: 'IA analisa em segundos',
-                  d: 'Geramos resumo executivo, score de maturidade e recomendações priorizadas.',
+                  t: 'Análise especializada',
+                  d: 'Nossa equipe de especialistas, com nossa tecnologia própria, faz uma análise e gera um relatório executivo, score de maturidade do negócio e recomendações priorizadas.',
                 },
                 {
                   n: '3',
