@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { PasswordStrength, isPasswordStrong } from '@/components/PasswordStrength';
 
 type SessionState = 'checking' | 'valid' | 'invalid';
 
@@ -53,10 +54,10 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
+    if (!isPasswordStrong(password)) {
       toast({
-        title: 'Senha muito curta',
-        description: 'Use pelo menos 6 caracteres',
+        title: 'Senha fraca',
+        description: 'Use ao menos 8 caracteres com maiúscula, número e símbolo.',
         variant: 'destructive',
       });
       return;
@@ -131,11 +132,12 @@ const ResetPassword = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
+                minLength={8}
                 required
                 autoComplete="new-password"
                 disabled={!validSession}
               />
+              <PasswordStrength password={password} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm">Confirmar senha</Label>
@@ -144,7 +146,7 @@ const ResetPassword = () => {
                 type="password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                minLength={6}
+                minLength={8}
                 required
                 autoComplete="new-password"
                 disabled={!validSession}
