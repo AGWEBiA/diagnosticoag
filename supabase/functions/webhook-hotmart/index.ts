@@ -138,26 +138,21 @@ Deno.serve(async (req) => {
     .ilike('email', email)
     .maybeSingle();
 
-  const userId = profile?.id;
+  const userId = profile?.id ?? '00000000-0000-0000-0000-000000000000';
+  const pendente = !profile?.id;
 
-  if (!userId) {
-    // Sem conta ainda — registramos como pendente (sem user_id seria violação NOT NULL).
-    // Estratégia: log e 202; quando o usuário criar conta com mesmo email, podemos casar via job futuro.
-    console.warn('[hotmart] sem conta para', email);
-    return new Response(JSON.stringify({ ok: true, pending: true }), {
-      status: 202,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  if (pendente) {
+    console.log('[hotmart] crédito pendente (sem conta) para', email);
   }
 
-  // 6. Insere N créditos
+  // 6. Insere N créditos (vinculados ao user real ou pendentes pelo email)
   const rows = Array.from({ length: creditos }).map(() => ({
     user_id: userId,
     origem: 'hotmart',
     produto_id: produto?.id ?? null,
     transacao_externa_id: transactionId,
     email_comprador: email,
-    metadata: { event, raw_product: produtoExternoId, oferta: ofertaExternaId },
+    metadata: { event, raw_product: produtoExternoId, oferta: ofertaExternaId, pendente },
   }));
   const { error: insertErr } = await supabase.from('creditos_diagnostico').insert(rows);
 
