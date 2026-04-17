@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/layouts/AdminLayout";
+import Landing from "./pages/Landing";
+import Perfil from "./pages/Perfil";
 import Diagnostico from "./pages/Diagnostico";
 import Agendar from "./pages/Agendar";
 import Login from "./pages/Login.tsx";
@@ -24,59 +27,69 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+    <HelmetProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
-            <Route path="/" element={<Navigate to="/diagnostico" replace />} />
-            <Route
-              path="/diagnostico"
-              element={
-                <ProtectedRoute>
-                  <Diagnostico />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/agendar/:id"
-              element={
-                <ProtectedRoute>
-                  <Agendar />
-                </ProtectedRoute>
-              }
-            />
-            {/* Compat: /resultado/:id agora redireciona para agendar */}
-            <Route path="/resultado/:id" element={<Navigate to="/diagnostico" replace />} />
+              <Route path="/" element={<Landing />} />
+              <Route
+                path="/perfil"
+                element={
+                  <ProtectedRoute>
+                    <Perfil />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/diagnostico"
+                element={
+                  <ProtectedRoute>
+                    <Diagnostico />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/agendar/:id"
+                element={
+                  <ProtectedRoute>
+                    <Agendar />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Compat: /resultado/:id agora redireciona para agendar */}
+              <Route path="/resultado/:id" element={<Navigate to="/diagnostico" replace />} />
 
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminHome />} />
-              <Route path="knowledge" element={<KnowledgeAdmin />} />
-              <Route path="diagnosticos" element={<DiagnosticosAdmin />} />
-              <Route path="usuarios" element={<UsuariosAdmin />} />
-              <Route path="logs" element={<LogsIaAdmin />} />
-              <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
-            </Route>
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminHome />} />
+                <Route path="knowledge" element={<KnowledgeAdmin />} />
+                <Route path="diagnosticos" element={<DiagnosticosAdmin />} />
+                <Route path="usuarios" element={<UsuariosAdmin />} />
+                <Route path="logs" element={<LogsIaAdmin />} />
+                <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
+              </Route>
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 

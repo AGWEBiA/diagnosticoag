@@ -2,6 +2,7 @@
 // Processa um diagnóstico (status='em_analise'), faz RAG via match_knowledge
 // e gera resumo executivo + recomendações + score usando Lovable AI Gateway.
 // Atualiza diagnostico para 'concluido' e registra audit_trail_ia + operacoes_ia.
+// Hardening: retry com fallback de modelo, custo_usd real, auto-flag confiança baixa.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { generateEmbedding } from "../_shared/embeddings.ts";
@@ -17,12 +18,23 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-const MODEL = "google/gemini-2.5-flash";
+// Modelo primário e fallback
+const PRIMARY_MODEL = "google/gemini-2.5-flash";
+const FALLBACK_MODEL = "google/gemini-2.5-pro";
+
+// Preços USD por 1M tokens (Lovable AI Gateway — aproximação para auditoria)
+const PRICES_PER_1M: Record<string, { in: number; out: number }> = {
+  "google/gemini-2.5-flash": { in: 0.075, out: 0.30 },
+  "google/gemini-2.5-pro": { in: 1.25, out: 5.00 },
+  "google/gemini-2.5-flash-lite": { in: 0.0375, out: 0.15 },
+};
+
+const FLAG_THRESHOLD = 0.6;
 
 interface AnaliseEstruturada {
   resumo_executivo: string;
-  score: number; // 0-100
-  confianca: number; // 0-1
+  score: number;
+  confianca: number;
   recomendacoes: Array<{
     titulo: string;
     descricao: string;
@@ -30,6 +42,12 @@ interface AnaliseEstruturada {
     categoria: string;
     impacto_estimado: string;
   }>;
+}
+
+function calcCustoUsd(model: string, tin: number, tout: number): number {
+  const p = PRICES_PER_1M[model];
+  if (!p) return 0;
+  return (tin / 1_000_000) * p.in + (tout / 1_000_000) * p.out;
 }
 
 function buildQueryFromRespostas(respostas: Record<string, unknown>): string {
@@ -61,7 +79,8 @@ REGRAS CRÍTICAS ANTI-ALUCINAÇÃO:
 Retorne SEMPRE via tool call structured.`;
 }
 
-async function callAI(
+async function callAIOnce(
+  model: string,
   systemPrompt: string,
   userPrompt: string,
 ): Promise<{ data: AnaliseEstruturada; tokens_in: number; tokens_out: number }> {
@@ -76,7 +95,7 @@ async function callAI(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -90,19 +109,9 @@ async function callAI(
               parameters: {
                 type: "object",
                 properties: {
-                  resumo_executivo: {
-                    type: "string",
-                    description:
-                      "Resumo executivo de 3-5 parágrafos com diagnóstico geral, principais oportunidades e riscos.",
-                  },
-                  score: {
-                    type: "number",
-                    description: "Score de maturidade 0-100",
-                  },
-                  confianca: {
-                    type: "number",
-                    description: "Confiança da análise 0-1",
-                  },
+                  resumo_executivo: { type: "string" },
+                  score: { type: "number" },
+                  confianca: { type: "number" },
                   recomendacoes: {
                     type: "array",
                     items: {
@@ -150,6 +159,7 @@ async function callAI(
   if (!response.ok) {
     if (response.status === 429) throw new Error("rate_limit");
     if (response.status === 402) throw new Error("payment_required");
+    if (response.status >= 500) throw new Error(`upstream_${response.status}`);
     const t = await response.text();
     throw new Error(`AI gateway error ${response.status}: ${t}`);
   }
@@ -164,6 +174,33 @@ async function callAI(
     tokens_in: json.usage?.prompt_tokens ?? 0,
     tokens_out: json.usage?.completion_tokens ?? 0,
   };
+}
+
+// Tenta modelo primário; em rate_limit/upstream_5xx, faz 1 retry no fallback.
+async function callAIWithFallback(
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{
+  data: AnaliseEstruturada;
+  tokens_in: number;
+  tokens_out: number;
+  modelo_usado: string;
+  fallback_usado: boolean;
+}> {
+  try {
+    const r = await callAIOnce(PRIMARY_MODEL, systemPrompt, userPrompt);
+    return { ...r, modelo_usado: PRIMARY_MODEL, fallback_usado: false };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    const retriable =
+      msg === "rate_limit" || msg.startsWith("upstream_5");
+    if (!retriable) throw e;
+    console.warn(
+      `Primary model ${PRIMARY_MODEL} falhou (${msg}); tentando fallback ${FALLBACK_MODEL}`,
+    );
+    const r = await callAIOnce(FALLBACK_MODEL, systemPrompt, userPrompt);
+    return { ...r, modelo_usado: FALLBACK_MODEL, fallback_usado: true };
+  }
 }
 
 Deno.serve(async (req) => {
@@ -208,13 +245,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Service role for atomic updates and audit writes
     const supabaseAdmin = createClient(
       SUPABASE_URL,
       SUPABASE_SERVICE_ROLE_KEY,
     );
 
-    // Carrega diagnóstico (RLS bypass via service role; mas garante ownership)
     const { data: diag, error: diagErr } = await supabaseAdmin
       .from("diagnosticos")
       .select("id, user_id, respostas, segmento, status")
@@ -229,7 +264,6 @@ Deno.serve(async (req) => {
     }
 
     if (diag.user_id !== userId) {
-      // admin pode? confere has_role
       const { data: isAdmin } = await supabaseAdmin.rpc("has_role", {
         _user_id: userId,
         _role: "admin",
@@ -251,7 +285,7 @@ Deno.serve(async (req) => {
 
     const respostas = (diag.respostas ?? {}) as Record<string, unknown>;
 
-    // RAG: gera embedding da query e busca conhecimento relevante
+    // RAG
     const query = buildQueryFromRespostas(respostas);
     let ragContexto: Array<{
       titulo: string;
@@ -308,19 +342,22 @@ Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${di
     let analise: AnaliseEstruturada;
     let tokens_in = 0;
     let tokens_out = 0;
+    let modeloUsado = PRIMARY_MODEL;
+    let fallbackUsado = false;
     try {
-      const result = await callAI(systemPrompt, userPrompt);
+      const result = await callAIWithFallback(systemPrompt, userPrompt);
       analise = result.data;
       tokens_in = result.tokens_in;
       tokens_out = result.tokens_out;
+      modeloUsado = result.modelo_usado;
+      fallbackUsado = result.fallback_usado;
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : String(e);
-      // log falha
       await supabaseAdmin.from("operacoes_ia").insert({
         user_id: userId,
         diagnostico_id: diagnosticoId,
         tipo: "process_diagnostico",
-        modelo: MODEL,
+        modelo: PRIMARY_MODEL,
         provider: "lovable_ai",
         sucesso: false,
         erro: msg,
@@ -369,29 +406,39 @@ Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${di
 
     if (updErr) throw updErr;
 
-    // audit trail
+    // Auto-flag por baixa confiança ou fallback usado
+    const flagged = analise.confianca < FLAG_THRESHOLD || fallbackUsado;
+    let flag_motivo: string | null = null;
+    if (analise.confianca < FLAG_THRESHOLD) {
+      flag_motivo = `baixa_confianca (${analise.confianca.toFixed(2)} < ${FLAG_THRESHOLD})`;
+    } else if (fallbackUsado) {
+      flag_motivo = `fallback_modelo (${PRIMARY_MODEL} -> ${modeloUsado})`;
+    }
+
     await supabaseAdmin.from("audit_trail_ia").insert({
       user_id: userId,
       diagnostico_id: diagnosticoId,
       prompt: userPrompt.slice(0, 10000),
       resposta: JSON.stringify(analise).slice(0, 10000),
-      modelo: MODEL,
+      modelo: modeloUsado,
       confianca: analise.confianca,
       contexto_rag: ragContexto,
-      flagged: analise.confianca < 0.5,
-      flag_motivo:
-        analise.confianca < 0.5 ? "Baixa confiança na análise" : null,
+      flagged,
+      flag_motivo,
     });
+
+    const custoUsd = calcCustoUsd(modeloUsado, tokens_in, tokens_out);
 
     await supabaseAdmin.from("operacoes_ia").insert({
       user_id: userId,
       diagnostico_id: diagnosticoId,
       tipo: "process_diagnostico",
-      modelo: MODEL,
+      modelo: modeloUsado,
       provider: "lovable_ai",
       sucesso: true,
       tokens_input: tokens_in,
       tokens_output: tokens_out,
+      custo_usd: Number(custoUsd.toFixed(6)),
       duracao_ms: Date.now() - startedAt,
     });
 
@@ -401,6 +448,9 @@ Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${di
         diagnostico_id: diagnosticoId,
         score: Math.round(analise.score),
         confianca: analise.confianca,
+        modelo: modeloUsado,
+        fallback_usado: fallbackUsado,
+        flagged,
         recomendacoes_count: analise.recomendacoes.length,
         rag_contexto_count: ragContexto.length,
       }),
