@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CalendarCheck, ExternalLink, Loader2, LogOut, Shield, AlertCircle } from 'lucide-react';
+import { UserAvatarMenu } from '@/components/UserAvatarMenu';
+import { CalendarCheck, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 
 interface AgendamentoConfig {
   url: string;
@@ -16,7 +17,7 @@ interface AgendamentoConfig {
 const Agendar = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, signOut, hasRole } = useAuth();
+  const { user, hasRole } = useAuth();
 
   const [config, setConfig] = useState<AgendamentoConfig | null>(null);
   const [diagOk, setDiagOk] = useState<boolean | null>(null);
@@ -75,17 +76,10 @@ const Agendar = () => {
             <p className="text-xs text-muted-foreground">{user?.email}</p>
           </div>
           <div className="flex items-center gap-2">
-            {hasRole('admin') && (
-              <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>
-                <Shield className="mr-2 h-4 w-4" /> Admin
-              </Button>
-            )}
             <Button variant="outline" size="sm" onClick={() => navigate('/diagnostico')}>
               Novo diagnóstico
             </Button>
-            <Button variant="outline" size="sm" onClick={signOut}>
-              <LogOut className="mr-2 h-4 w-4" /> Sair
-            </Button>
+            <UserAvatarMenu />
           </div>
         </div>
       </header>
