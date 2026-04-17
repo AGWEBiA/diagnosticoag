@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.chat-diagnostico]
 verify_jwt = false
+
+[functions.gerar-pdf-diagnostico]
+verify_jwt = false
