@@ -74,9 +74,18 @@ const ResetPassword = () => {
     setSubmitting(false);
 
     if (error) {
+      const msg = error.message?.toLowerCase() ?? '';
+      let description = error.message;
+      if (msg.includes('different from the old') || msg.includes('same as')) {
+        description = 'A nova senha não pode ser igual à anterior. Escolha uma diferente.';
+      } else if (msg.includes('pwned') || msg.includes('compromised') || msg.includes('breach')) {
+        description = 'Esta senha aparece em vazamentos públicos. Escolha uma senha mais forte e única.';
+      } else if (msg.includes('weak') || msg.includes('short')) {
+        description = 'Senha fraca. Use ao menos 6 caracteres com letras e números.';
+      }
       toast({
         title: 'Erro ao atualizar senha',
-        description: error.message,
+        description,
         variant: 'destructive',
       });
       return;
