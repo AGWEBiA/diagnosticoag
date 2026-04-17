@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardList, Users, Activity, LayoutDashboard, Settings, BarChart3, Package } from 'lucide-react';
+import { BookOpen, ClipboardList, Users, Activity, LayoutDashboard, Settings, BarChart3, Package, Coins } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -19,6 +19,7 @@ const items = [
   { title: 'Diagnósticos', url: '/admin/diagnosticos', icon: ClipboardList, end: false },
   { title: 'Usuários', url: '/admin/usuarios', icon: Users, end: false },
   { title: 'Produtos', url: '/admin/produtos', icon: Package, end: false },
+  { title: 'Créditos', url: '/admin/creditos', icon: Coins, end: false },
   { title: 'Logs de IA', url: '/admin/logs', icon: Activity, end: false },
   { title: 'Métricas IA', url: '/admin/metricas', icon: BarChart3, end: false },
   { title: 'Configurações', url: '/admin/configuracoes', icon: Settings, end: false },
