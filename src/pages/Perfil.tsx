@@ -100,7 +100,6 @@ const Perfil = () => {
       .from('profiles')
       .update({
         full_name: fullName.trim() || null,
-        avatar_url: avatarUrl.trim() || null,
       })
       .eq('id', user.id);
     setSaving(false);
