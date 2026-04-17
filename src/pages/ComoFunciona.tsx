@@ -23,9 +23,9 @@ const etapas = [
   {
     n: '01',
     icon: UserPlus,
-    titulo: 'Cadastro e crédito de cortesia',
+    titulo: 'Cadastro e ativação de créditos',
     descricao:
-      'Crie sua conta com email e senha. Você recebe automaticamente 1 crédito de diagnóstico cortesia para experimentar a plataforma. Compras anteriores via Hotmart ou Kiwify (mesmo email) são creditadas retroativamente.',
+      'Crie sua conta com email e senha. Compras realizadas via Hotmart ou Kiwify (com o mesmo email) são automaticamente vinculadas e creditadas na sua conta — inclusive retroativamente.',
     detalhes: [
       'Verificação de email obrigatória',
       'Senha forte com indicador visual',
@@ -116,7 +116,7 @@ const pilares = [
 const ComoFunciona = () => {
   const { user } = useAuth();
   const ctaTo = user ? '/diagnostico' : '/signup';
-  const ctaLabel = user ? 'Iniciar meu diagnóstico' : 'Criar conta gratuita';
+  const ctaLabel = user ? 'Iniciar meu diagnóstico' : 'Criar conta';
 
   return (
     <div className="min-h-screen bg-background">
@@ -279,8 +279,8 @@ const ComoFunciona = () => {
               <div className="mt-8 space-y-4">
                 {[
                   {
-                    q: 'Quanto custa fazer um diagnóstico?',
-                    a: 'Você recebe 1 crédito de cortesia ao se cadastrar. Créditos adicionais podem ser adquiridos via Hotmart ou Kiwify e são automaticamente vinculados à sua conta pelo email.',
+                    q: 'Como adquiro créditos para fazer um diagnóstico?',
+                    a: 'Os créditos são adquiridos via Hotmart ou Kiwify e ficam automaticamente vinculados à sua conta pelo email utilizado na compra.',
                   },
                   {
                     q: 'Posso pausar o formulário e voltar depois?',
@@ -316,8 +316,8 @@ const ComoFunciona = () => {
                   Pronto para o seu diagnóstico?
                 </h2>
                 <p className="mt-3 text-muted-foreground md:text-lg">
-                  Crie sua conta agora e ganhe 1 crédito de cortesia para iniciar sua
-                  primeira análise estratégica.
+                  Crie sua conta e dê o primeiro passo para uma análise estratégica
+                  profunda do seu negócio digital.
                 </p>
                 <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Button asChild size="lg">
