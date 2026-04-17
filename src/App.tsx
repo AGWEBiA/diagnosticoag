@@ -50,45 +50,46 @@ const App = () => (
               />
               <Route
                 path="/diagnostico"
-              element={
-                <ProtectedRoute>
-                  <Diagnostico />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/agendar/:id"
-              element={
-                <ProtectedRoute>
-                  <Agendar />
-                </ProtectedRoute>
-              }
-            />
-            {/* Compat: /resultado/:id agora redireciona para agendar */}
-            <Route path="/resultado/:id" element={<Navigate to="/diagnostico" replace />} />
+                element={
+                  <ProtectedRoute>
+                    <Diagnostico />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/agendar/:id"
+                element={
+                  <ProtectedRoute>
+                    <Agendar />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Compat: /resultado/:id agora redireciona para agendar */}
+              <Route path="/resultado/:id" element={<Navigate to="/diagnostico" replace />} />
 
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminHome />} />
-              <Route path="knowledge" element={<KnowledgeAdmin />} />
-              <Route path="diagnosticos" element={<DiagnosticosAdmin />} />
-              <Route path="usuarios" element={<UsuariosAdmin />} />
-              <Route path="logs" element={<LogsIaAdmin />} />
-              <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
-            </Route>
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminHome />} />
+                <Route path="knowledge" element={<KnowledgeAdmin />} />
+                <Route path="diagnosticos" element={<DiagnosticosAdmin />} />
+                <Route path="usuarios" element={<UsuariosAdmin />} />
+                <Route path="logs" element={<LogsIaAdmin />} />
+                <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
+              </Route>
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 
