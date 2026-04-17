@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useRef, ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,8 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Download, Loader2, FileText, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Download, Loader2, FileText, ClipboardList, Upload, Trash2 } from 'lucide-react';
+
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
+const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 type DiagStatus = 'rascunho' | 'em_analise' | 'concluido' | 'arquivado';
 
@@ -35,7 +39,9 @@ const Perfil = () => {
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileQuery = useQuery({
     queryKey: ['perfil', user?.id],
@@ -94,7 +100,6 @@ const Perfil = () => {
       .from('profiles')
       .update({
         full_name: fullName.trim() || null,
-        avatar_url: avatarUrl.trim() || null,
       })
       .eq('id', user.id);
     setSaving(false);
@@ -122,6 +127,77 @@ const Perfil = () => {
     }
     window.open(data.signedUrl, '_blank', 'noopener');
   };
+
+  const handleAvatarFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !user) return;
+
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+      toast({ title: 'Formato inválido', description: 'Use JPG, PNG ou WebP.', variant: 'destructive' });
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast({ title: 'Arquivo muito grande', description: 'Limite: 2 MB.', variant: 'destructive' });
+      return;
+    }
+
+    setUploadingAvatar(true);
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (upErr) {
+      setUploadingAvatar(false);
+      toast({ title: 'Falha no upload', description: upErr.message, variant: 'destructive' });
+      return;
+    }
+
+    const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+    const publicUrl = pub.publicUrl;
+
+    const { error: updErr } = await supabase
+      .from('profiles')
+      .update({ avatar_url: publicUrl })
+      .eq('id', user.id);
+
+    setUploadingAvatar(false);
+    if (updErr) {
+      toast({ title: 'Erro ao salvar avatar', description: updErr.message, variant: 'destructive' });
+      return;
+    }
+    setAvatarUrl(publicUrl);
+    toast({ title: 'Avatar atualizado' });
+    qc.invalidateQueries({ queryKey: ['perfil', user.id] });
+  };
+
+  const handleAvatarRemove = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: null })
+      .eq('id', user.id);
+    setUploadingAvatar(false);
+    if (error) {
+      toast({ title: 'Erro ao remover', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setAvatarUrl('');
+    toast({ title: 'Avatar removido' });
+    qc.invalidateQueries({ queryKey: ['perfil', user.id] });
+  };
+
+  const initials = (fullName || user?.email || '?')
+    .split(/\s+/)
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,7 +230,54 @@ const Perfil = () => {
             {profileQuery.isLoading ? (
               <Skeleton className="h-24 w-full" />
             ) : (
-              <form onSubmit={handleSave} className="space-y-4">
+              <form onSubmit={handleSave} className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarFile}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                      >
+                        {uploadingAvatar ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="mr-2 h-4 w-4" />
+                        )}
+                        {avatarUrl ? 'Trocar foto' : 'Enviar foto'}
+                      </Button>
+                      {avatarUrl && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAvatarRemove}
+                          disabled={uploadingAvatar}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Remover
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      JPG, PNG ou WebP, até 2 MB.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nome completo</Label>
                   <Input
@@ -165,17 +288,7 @@ const Perfil = () => {
                     maxLength={120}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="avatarUrl">URL do avatar (opcional)</Label>
-                  <Input
-                    id="avatarUrl"
-                    type="url"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://..."
-                    maxLength={500}
-                  />
-                </div>
+
                 <Button type="submit" disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Salvar
