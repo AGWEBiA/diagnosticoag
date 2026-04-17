@@ -86,6 +86,34 @@ const ConfiguracoesAdmin = () => {
     toast({ title: 'Configurações salvas' });
   };
 
+  const salvarIa = async () => {
+    const limite = Number(iaAlertas.custo_diario_limite_usd);
+    if (!Number.isFinite(limite) || limite < 0) {
+      toast({
+        title: 'Limite inválido',
+        description: 'Informe um número maior ou igual a zero.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setSavingIa(true);
+    const { error } = await supabase
+      .from('app_settings')
+      .upsert([
+        {
+          key: 'ia_alertas',
+          value: { custo_diario_limite_usd: limite } as unknown as never,
+          updated_by: user?.id ?? null,
+        },
+      ]);
+    setSavingIa(false);
+    if (error) {
+      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Limite de custo IA atualizado' });
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
