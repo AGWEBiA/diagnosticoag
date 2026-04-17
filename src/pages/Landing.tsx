@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { UserAvatarMenu } from '@/components/UserAvatarMenu';
+import { YouTubeLite } from '@/components/YouTubeLite';
+import andersonPortrait from '@/assets/anderson-portrait.jpg';
 import {
   ArrowRight,
   LogIn,
@@ -33,7 +35,55 @@ import {
   Sparkles,
   DollarSign,
   Youtube,
+  BookOpen,
+  Briefcase,
 } from 'lucide-react';
+
+const TESTIMONIALS = [
+  {
+    videoId: 'QaFabNdcbd0',
+    name: 'Anderson Maisse',
+    role: 'Infoprodutor',
+    quote:
+      'Identifiquei que estava gastando 60% do meu orçamento em um canal que rendia apenas 10%. Redirecionei e meu faturamento cresceu 3x em 3 meses.',
+  },
+  {
+    videoId: '88fQ3R35CuY',
+    name: 'Andreza Emerick',
+    role: 'Consultora de Marketing',
+    quote:
+      'O relatório foi tão preciso que parecia que Anderson tinha passado um mês dentro da minha empresa. Cada recomendação foi exatamente o que eu precisava ouvir.',
+  },
+  {
+    videoId: 'DOfdl5OwADY',
+    name: 'Anderson Souza',
+    role: 'Dono de Agência',
+    quote:
+      'Foi a melhor decisão que tomei. A reunião com Anderson me deu clareza sobre o que fazer nos próximos 12 meses. Já implementei 3 recomendações e estou vendo resultado.',
+  },
+  {
+    videoId: 'hcPxFHwaDY8',
+    name: 'Bruno Nascimento',
+    role: 'Infoprodutor',
+    quote:
+      'Recomendo para todo empreendedor digital que quer crescer. Não é um gasto, é um investimento que retorna em dias.',
+  },
+  {
+    videoId: 'RDnGb3_7gFk',
+    name: 'Marta Giove',
+    role: 'Empreendedora Digital',
+    quote:
+      'Saí da reunião com um plano executável. Em poucas semanas já estava colhendo os primeiros resultados das mudanças propostas.',
+  },
+  {
+    videoId: 'Bb7ZBSonozo',
+    name: 'Matheus Simões',
+    role: 'Infoprodutor',
+    quote:
+      'A análise mostrou exatamente onde eu estava perdendo dinheiro e qual o próximo passo. Direto ao ponto, sem enrolação.',
+  },
+] as const;
+
 
 const Landing = () => {
   const { user } = useAuth();
@@ -443,46 +493,94 @@ const Landing = () => {
           </div>
         </section>
 
+        {/* QUEM SOU EU */}
+        <section id="quem-sou-eu" className="border-b bg-muted/30 py-20 md:py-24">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[auto_1fr] md:gap-14">
+              <div className="mx-auto md:mx-0">
+                <div className="relative">
+                  <div className="absolute -inset-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 blur-xl" />
+                  <img
+                    src={andersonPortrait}
+                    alt="Anderson Gomes — Estrategista Digital"
+                    width={280}
+                    height={280}
+                    loading="lazy"
+                    className="relative h-64 w-64 rounded-2xl object-cover shadow-xl ring-1 ring-border md:h-72 md:w-72"
+                  />
+                </div>
+              </div>
+              <div>
+                <Badge variant="secondary" className="mb-3">Quem sou eu</Badge>
+                <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Anderson Gomes</h2>
+                <p className="mt-1 text-lg font-medium text-muted-foreground">
+                  Mentor & Estrategista Digital
+                </p>
+                <div className="mt-5 space-y-4 text-muted-foreground">
+                  <p>
+                    Estrategista digital com <strong className="text-foreground">mais de 10 anos</strong> de
+                    experiência em marketing digital, funis de vendas e estruturação de negócios online.
+                    Especialista em ajudar infoprodutores a transformar conhecimento em receita previsível.
+                  </p>
+                  <p>
+                    Referência em como aplicar <strong className="text-foreground">Inteligência Artificial</strong>{' '}
+                    em negócios digitais, ajudando empreendedores a escalar seus resultados com tecnologia e
+                    estratégia. Já gerenciei <strong className="text-foreground">+R$ 40 milhões</strong> em
+                    resultados digitais e mentorei mais de <strong className="text-foreground">500 alunos</strong>
+                    {' '}que somam <strong className="text-foreground">+R$ 50 milhões</strong> faturados.
+                  </p>
+                </div>
+                <div className="mt-6 grid grid-cols-3 gap-3 text-center">
+                  {[
+                    { n: '10+', t: 'anos de experiência' },
+                    { n: '500+', t: 'alunos mentorados' },
+                    { n: 'R$ 50M+', t: 'faturados por alunos' },
+                  ].map((s) => (
+                    <div key={s.t} className="rounded-lg border bg-card p-3">
+                      <div className="text-xl font-bold">{s.n}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">{s.t}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <Badge variant="outline" className="gap-1.5">
+                    <BookOpen className="h-3 w-3" /> Autor de "DNA Digital de Sucesso"
+                  </Badge>
+                  <Badge variant="outline" className="gap-1.5">
+                    <Briefcase className="h-3 w-3" /> SENAI · Coca-Cola · Jovem Pan
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* DEPOIMENTOS */}
-        <section className="border-b bg-muted/30 py-20 md:py-24">
+        <section className="border-b py-20 md:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
+              <Badge variant="secondary" className="mb-3">
+                <Video className="mr-1 h-3 w-3" /> Depoimentos em vídeo
+              </Badge>
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">O que dizem meus clientes</h2>
+              <p className="mt-3 text-muted-foreground">
+                Resultados reais, na voz de quem viveu. Clique no play para assistir.
+              </p>
             </div>
-            <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-2">
-              {[
-                {
-                  q: 'Depois do diagnóstico, identifiquei que estava gastando 60% do meu orçamento em um canal que rendia apenas 10% de resultado. Redirecionei e meu faturamento cresceu 3x em 3 meses.',
-                  a: 'Anderson Maisse',
-                  r: 'Infoprodutor',
-                },
-                {
-                  q: 'O relatório foi tão preciso que parecia que Anderson tinha passado um mês dentro da minha empresa. Cada recomendação foi exatamente o que eu precisava ouvir.',
-                  a: 'Andreza Emerick',
-                  r: 'Consultora de Marketing',
-                },
-                {
-                  q: 'Contratar o diagnóstico completo foi a melhor decisão que tomei. A reunião com Anderson me deu clareza sobre o que fazer nos próximos 12 meses. Já implementei 3 recomendações e estou vendo resultado.',
-                  a: 'Anderson Souza',
-                  r: 'Dono de Agência',
-                },
-                {
-                  q: 'Recomendo para todo empreendedor digital que quer crescer. Não é um gasto, é um investimento que retorna em dias.',
-                  a: 'Bruno Nascimento',
-                  r: 'Infoprodutor',
-                },
-              ].map((d) => (
-                <Card key={d.a}>
-                  <CardContent className="p-6">
-                    <div className="mb-3 flex gap-0.5 text-primary">
+            <div className="mx-auto mt-12 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {TESTIMONIALS.map((t) => (
+                <Card key={t.videoId} className="overflow-hidden">
+                  <YouTubeLite videoId={t.videoId} title={`${t.name} — Depoimento`} />
+                  <CardContent className="p-5">
+                    <div className="mb-2 flex gap-0.5 text-primary">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-current" />
+                        <Star key={i} className="h-3.5 w-3.5 fill-current" />
                       ))}
                     </div>
-                    <p className="text-sm leading-relaxed text-foreground">"{d.q}"</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">"{t.quote}"</p>
                     <div className="mt-4 border-t pt-3">
-                      <div className="font-semibold">{d.a}</div>
-                      <div className="text-xs text-muted-foreground">{d.r}</div>
+                      <div className="font-semibold">{t.name}</div>
+                      <div className="text-xs text-muted-foreground">{t.role}</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -491,7 +589,7 @@ const Landing = () => {
             <div className="mt-10 text-center">
               <Button asChild variant="outline" size="lg">
                 <a
-                  href="https://www.youtube.com/@andersongomesoficial"
+                  href="https://www.youtube.com/playlist?list=PLUa7HEmRsnU6_ORdNTA6H4TXixJ4N5m5R"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -501,6 +599,7 @@ const Landing = () => {
             </div>
           </div>
         </section>
+
 
         {/* FAQ */}
         <section className="border-b py-20 md:py-24">
