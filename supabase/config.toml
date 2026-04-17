@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.gerar-pdf-diagnostico]
 verify_jwt = false
+
+[functions.webhook-hotmart]
+verify_jwt = false
+
+[functions.webhook-kiwify]
+verify_jwt = false
