@@ -58,7 +58,7 @@ const ConfiguracoesAdmin = () => {
       .upsert([
         {
           key: 'agendamento',
-          value: config as unknown as Record<string, unknown>,
+          value: config as unknown as never,
           updated_by: user?.id ?? null,
         },
       ]);
