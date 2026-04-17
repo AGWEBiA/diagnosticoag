@@ -129,6 +129,77 @@ const Perfil = () => {
     window.open(data.signedUrl, '_blank', 'noopener');
   };
 
+  const handleAvatarFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !user) return;
+
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+      toast({ title: 'Formato inválido', description: 'Use JPG, PNG ou WebP.', variant: 'destructive' });
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast({ title: 'Arquivo muito grande', description: 'Limite: 2 MB.', variant: 'destructive' });
+      return;
+    }
+
+    setUploadingAvatar(true);
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (upErr) {
+      setUploadingAvatar(false);
+      toast({ title: 'Falha no upload', description: upErr.message, variant: 'destructive' });
+      return;
+    }
+
+    const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+    const publicUrl = pub.publicUrl;
+
+    const { error: updErr } = await supabase
+      .from('profiles')
+      .update({ avatar_url: publicUrl })
+      .eq('id', user.id);
+
+    setUploadingAvatar(false);
+    if (updErr) {
+      toast({ title: 'Erro ao salvar avatar', description: updErr.message, variant: 'destructive' });
+      return;
+    }
+    setAvatarUrl(publicUrl);
+    toast({ title: 'Avatar atualizado' });
+    qc.invalidateQueries({ queryKey: ['perfil', user.id] });
+  };
+
+  const handleAvatarRemove = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: null })
+      .eq('id', user.id);
+    setUploadingAvatar(false);
+    if (error) {
+      toast({ title: 'Erro ao remover', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setAvatarUrl('');
+    toast({ title: 'Avatar removido' });
+    qc.invalidateQueries({ queryKey: ['perfil', user.id] });
+  };
+
+  const initials = (fullName || user?.email || '?')
+    .split(/\s+/)
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
