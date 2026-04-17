@@ -22,6 +22,7 @@ import DiagnosticosAdmin from "./pages/admin/DiagnosticosAdmin";
 import UsuariosAdmin from "./pages/admin/UsuariosAdmin";
 import LogsIaAdmin from "./pages/admin/LogsIaAdmin";
 import ConfiguracoesAdmin from "./pages/admin/ConfiguracoesAdmin";
+import MetricasAdmin from "./pages/admin/MetricasAdmin";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => (
                 <Route path="diagnosticos" element={<DiagnosticosAdmin />} />
                 <Route path="usuarios" element={<UsuariosAdmin />} />
                 <Route path="logs" element={<LogsIaAdmin />} />
+                <Route path="metricas" element={<MetricasAdmin />} />
                 <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               </Route>
 
