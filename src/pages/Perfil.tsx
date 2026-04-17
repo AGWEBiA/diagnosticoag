@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserAvatarMenu } from '@/components/UserAvatarMenu';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Download, Loader2, FileText, ClipboardList, Upload, Trash2 } from 'lucide-react';
+import { ArrowLeft, Download, Loader2, FileText, ClipboardList, Upload, Trash2, KeyRound, Eye, EyeOff } from 'lucide-react';
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
 const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -34,7 +34,7 @@ const statusVariant: Record<DiagStatus, 'secondary' | 'default' | 'outline'> = {
 };
 
 const Perfil = () => {
-  const { user } = useAuth();
+  const { user, updatePassword } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [fullName, setFullName] = useState('');
@@ -43,6 +43,34 @@ const Perfil = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Alterar senha
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast({ title: 'Senha muito curta', description: 'Use pelo menos 6 caracteres.', variant: 'destructive' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: 'Senhas não conferem', description: 'Confirme a nova senha corretamente.', variant: 'destructive' });
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await updatePassword(newPassword);
+    setChangingPassword(false);
+    if (error) {
+      toast({ title: 'Erro ao alterar senha', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setNewPassword('');
+    setConfirmPassword('');
+    toast({ title: 'Senha atualizada', description: 'Sua nova senha já está ativa.' });
+  };
 
   const profileQuery = useQuery({
     queryKey: ['perfil', user?.id],
@@ -294,6 +322,59 @@ const Perfil = () => {
                 </Button>
               </form>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Alterar senha */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-primary" />
+              Alterar senha
+            </CardTitle>
+            <CardDescription>Defina uma nova senha de acesso à sua conta.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Nova senha</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    autoComplete="new-password"
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a nova senha"
+                  autoComplete="new-password"
+                  minLength={6}
+                />
+              </div>
+              <Button type="submit" disabled={changingPassword || !newPassword || !confirmPassword}>
+                {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Atualizar senha
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
