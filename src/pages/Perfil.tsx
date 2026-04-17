@@ -325,6 +325,59 @@ const Perfil = () => {
           </CardContent>
         </Card>
 
+        {/* Alterar senha */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-primary" />
+              Alterar senha
+            </CardTitle>
+            <CardDescription>Defina uma nova senha de acesso à sua conta.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Nova senha</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    autoComplete="new-password"
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a nova senha"
+                  autoComplete="new-password"
+                  minLength={6}
+                />
+              </div>
+              <Button type="submit" disabled={changingPassword || !newPassword || !confirmPassword}>
+                {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Atualizar senha
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
         {/* Diagnósticos */}
         <Card>
           <CardHeader>
