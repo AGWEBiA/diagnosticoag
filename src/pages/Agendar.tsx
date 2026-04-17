@@ -43,7 +43,7 @@ const Agendar = () => {
       if (cancelled) return;
 
       setDiagOk(!!diagRes.data);
-      const v = (cfgRes.data?.value ?? {}) as AgendamentoConfig;
+      const v = (cfgRes.data?.value ?? {}) as unknown as AgendamentoConfig;
       setConfig({
         url: v.url ?? '',
         titulo: v.titulo || 'Agende sua reunião',

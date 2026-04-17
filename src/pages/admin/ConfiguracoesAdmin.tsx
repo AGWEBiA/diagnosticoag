@@ -55,7 +55,13 @@ const ConfiguracoesAdmin = () => {
     setSaving(true);
     const { error } = await supabase
       .from('app_settings')
-      .upsert({ key: 'agendamento', value: config, updated_by: user?.id ?? null });
+      .upsert([
+        {
+          key: 'agendamento',
+          value: config as unknown as Record<string, unknown>,
+          updated_by: user?.id ?? null,
+        },
+      ]);
     setSaving(false);
     if (error) {
       toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
