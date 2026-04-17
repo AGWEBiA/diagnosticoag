@@ -1,7 +1,7 @@
 // Cliente Supabase - conexão manual (sem Lovable Cloud)
 // A anon key é pública por design; a segurança real vem das RLS policies no banco.
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
+import type { Database } from '@/lib/database.types';
 
 const SUPABASE_URL = 'https://pzzeefqqcrmqfimetpwf.supabase.co';
 const SUPABASE_ANON_KEY =
