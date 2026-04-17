@@ -61,6 +61,20 @@ const MetricasAdmin = () => {
     },
   });
 
+  const limiteQuery = useQuery({
+    queryKey: ['admin-metricas', 'limite-custo-diario'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'ia_alertas')
+        .maybeSingle();
+      if (error) throw error;
+      const v = (data?.value ?? {}) as { custo_diario_limite_usd?: number };
+      return Number(v.custo_diario_limite_usd ?? 0);
+    },
+  });
+
   const agg = useMemo(() => {
     const ops = opsQuery.data ?? [];
     const audit = auditQuery.data ?? [];
