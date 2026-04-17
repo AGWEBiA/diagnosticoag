@@ -34,7 +34,7 @@ import {
   AlertTriangle,
   Sparkles,
   DollarSign,
-  Youtube,
+  
   BookOpen,
   Briefcase,
 } from 'lucide-react';
