@@ -9,7 +9,8 @@ import { Pergunta, getEtapasPorSegmento, TOTAL_ETAPAS } from '@/config/diagnosti
 import { PerguntaField } from '@/components/diagnostico/PerguntaField';
 import { useDiagnosticoRascunho, Respostas } from '@/hooks/useDiagnosticoRascunho';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, Shield } from 'lucide-react';
+import { UserAvatarMenu } from '@/components/UserAvatarMenu';
+import { supabase } from '@/integrations/supabase/client';
 
 function validarPergunta(p: Pergunta, value: unknown, all: Respostas): string | null {
   if (p.obrigatoria) {
@@ -40,12 +41,13 @@ function validarMetas(r: Respostas): string | null {
 const Diagnostico = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signOut, hasRole } = useAuth();
+  const { user } = useAuth();
   const { state, loading, saving, salvarEtapa, finalizar } = useDiagnosticoRascunho();
 
   const [respostas, setRespostas] = useState<Respostas>({});
   const [etapaIdx, setEtapaIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [aguardandoIA, setAguardandoIA] = useState<string | null>(null);
 
   // Hidrata estado local quando rascunho carregar
   useEffect(() => {
