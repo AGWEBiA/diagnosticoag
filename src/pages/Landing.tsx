@@ -25,8 +25,14 @@ import {
   Users,
   FileText,
   Zap,
-  Calendar,
+  Building2,
+  GraduationCap,
+  Lightbulb,
+  Video,
+  AlertTriangle,
   Sparkles,
+  DollarSign,
+  Youtube,
 } from 'lucide-react';
 
 const Landing = () => {
@@ -39,7 +45,7 @@ const Landing = () => {
         <title>Diagnóstico de Negócios Digitais | Anderson Gomes</title>
         <meta
           name="description"
-          content="Descubra os gargalos reais do seu negócio digital com análise estratégica feita por IA Enterprise-Grade + 10+ anos de experiência. Plano de ação claro para crescer."
+          content="Descubra os GARGALOS REAIS do seu negócio digital e saiba EXATAMENTE o que fazer para crescer. Análise com IA Enterprise-Grade + 10+ anos gerenciando +R$ 40 milhões em resultados."
         />
         <link rel="canonical" href={`${window.location.origin}/`} />
         <script type="application/ld+json">
@@ -49,24 +55,11 @@ const Landing = () => {
             name: 'Diagnóstico de Negócios Digitais',
             description:
               'Análise estratégica do seu negócio digital com IA vertical: identificação de gargalos, plano de ação priorizado e relatório executivo em PDF.',
-            provider: {
-              '@type': 'Person',
-              name: 'Anderson Gomes',
-            },
+            provider: { '@type': 'Person', name: 'Anderson Gomes' },
             areaServed: 'BR',
             offers: [
-              {
-                '@type': 'Offer',
-                name: 'Diagnóstico Rápido',
-                price: '197',
-                priceCurrency: 'BRL',
-              },
-              {
-                '@type': 'Offer',
-                name: 'Diagnóstico Completo',
-                price: '297',
-                priceCurrency: 'BRL',
-              },
+              { '@type': 'Offer', name: 'Diagnóstico Rápido', price: '197', priceCurrency: 'BRL' },
+              { '@type': 'Offer', name: 'Diagnóstico Completo', price: '297', priceCurrency: 'BRL' },
             ],
           })}
         </script>
@@ -75,9 +68,7 @@ const Landing = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <Link to="/" className="font-semibold">
-            Anderson Gomes
-          </Link>
+          <Link to="/" className="font-semibold">Anderson Gomes</Link>
           <nav className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link to="/como-funciona">Como funciona</Link>
@@ -85,18 +76,14 @@ const Landing = () => {
             {user ? (
               <>
                 <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
-                  <Link to="/diagnostico">
-                    Meu diagnóstico <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+                  <Link to="/diagnostico">Meu diagnóstico <ArrowRight className="ml-2 h-4 w-4" /></Link>
                 </Button>
                 <UserAvatarMenu />
               </>
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/login">
-                    <LogIn className="mr-2 h-4 w-4" /> Entrar
-                  </Link>
+                  <Link to="/login"><LogIn className="mr-2 h-4 w-4" /> Entrar</Link>
                 </Button>
                 <Button asChild size="sm">
                   <Link to="/signup">Criar conta</Link>
@@ -117,37 +104,28 @@ const Landing = () => {
                 <Sparkles className="mr-1 h-3 w-3" /> Análise estratégica com IA Enterprise-Grade
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-                Descubra os gargalos reais do seu negócio digital
+                Descubra os <span className="text-primary">GARGALOS REAIS</span> do seu negócio digital
               </h1>
               <p className="mt-4 text-xl font-medium text-muted-foreground md:text-2xl">
-                E saiba <span className="text-foreground">exatamente</span> o que fazer para crescer
+                E saiba <span className="text-foreground">EXATAMENTE</span> o que fazer para crescer
               </p>
               <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
-                Análise profunda + estratégia personalizada baseada em <strong className="text-foreground">10+ anos</strong>{' '}
-                de experiência gerenciando <strong className="text-foreground">+R$ 40 milhões</strong> em resultados digitais
-                para empresas como SENAI, Coca-Cola e Grupo Jovem Pan.
+                Análise profunda com IA Enterprise-Grade + estratégia personalizada baseada em{' '}
+                <strong className="text-foreground">10+ anos</strong> de experiência gerenciando{' '}
+                <strong className="text-foreground">+R$ 40 milhões</strong> em resultados digitais.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button asChild size="lg" className="w-full sm:w-auto">
-                  <a href="#produtos">
-                    Ver opções de diagnóstico
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
+                  <a href="#produtos">Quero descobrir meus gargalos <ArrowRight className="ml-2 h-4 w-4" /></a>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
                   <Link to="/como-funciona">Como funciona</Link>
                 </Button>
               </div>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-primary" /> Garantia de 7 dias
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-primary" /> Entrega em até 5 dias
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Award className="h-4 w-4 text-primary" /> +R$ 40 milhões gerenciados
-                </span>
+                <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Garantia de 7 dias</span>
+                <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> Entrega em até 5 dias</span>
+                <span className="inline-flex items-center gap-1.5"><Award className="h-4 w-4 text-primary" /> +R$ 40 milhões gerenciados</span>
               </div>
             </div>
           </div>
@@ -158,46 +136,46 @@ const Landing = () => {
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                Você está deixando dinheiro na mesa
+                Você está deixando dinheiro na mesa.
               </h2>
               <div className="mt-6 space-y-4 text-lg text-muted-foreground">
+                <p>Pode parecer duro, mas é a verdade que a maioria dos empreendedores digitais não quer ouvir.</p>
                 <p>
-                  Pode parecer duro, mas é a verdade que a maioria dos empreendedores digitais não quer ouvir.
-                </p>
-                <p>
-                  Você tem um negócio, tem tráfego, tem clientes… mas algo não está clicando. Seu faturamento
-                  não cresce como deveria. Sua margem é menor que a dos concorrentes. E você não sabe
+                  Você tem um negócio, tem tráfego, tem clientes... mas algo não está clicando. Seu faturamento
+                  não cresce como deveria. Sua margem de lucro é menor que a dos concorrentes. E você não sabe
                   exatamente onde está o problema.
                 </p>
+                <p>
+                  E o pior? Você está tentando resolver isso sozinho, testando estratégias aleatórias, gastando
+                  tempo e dinheiro sem saber se está no caminho certo.
+                </p>
                 <p className="text-foreground">
+                  Depois de 10+ anos no mercado, gerenciando mais de <strong>R$ 40 milhões</strong> em resultados
+                  digitais e atendendo empresas como SENAI, Coca-Cola e Grupo Jovem Pan, descobri algo que muda tudo:
+                </p>
+                <blockquote className="border-l-4 border-primary bg-muted/30 p-5 text-foreground">
                   <strong>
-                    A maioria dos negócios digitais falha não porque a estratégia é ruim, mas porque ninguém
-                    fez um diagnóstico profundo antes de agir.
+                    A maioria dos negócios digitais falha não porque a estratégia é ruim, mas porque ninguém fez
+                    um DIAGNÓSTICO PROFUNDO antes de agir.
                   </strong>
+                </blockquote>
+                <p>
+                  É como tentar consertar um carro sem saber o que está quebrado. Você pode gastar uma fortuna em
+                  peças e nunca resolver o problema.
+                </p>
+                <p className="text-foreground">
+                  Mas se você souber EXATAMENTE qual é o problema, tiver um PLANO CLARO de ação e souber PARA
+                  ONDE IR... aí sim, as coisas mudam.
                 </p>
                 <p>
-                  É como tentar consertar um carro sem saber o que está quebrado. Mas se você souber
-                  exatamente qual é o problema, com um plano claro de ação, tudo muda.
+                  Por isso criei o <strong className="text-foreground">Diagnóstico de Negócios Digitais</strong>:
+                  análise profunda e personalizada do seu negócio com IA Enterprise-Grade, conhecimento de 10+
+                  anos no mercado, metodologia testada com centenas de clientes e recomendações acionáveis (não teóricas).
                 </p>
-              </div>
-
-              <div className="mt-10 grid gap-4 sm:grid-cols-2">
-                {[
-                  { icon: Target, t: 'Identificação dos gargalos reais', d: 'Avaliação dos 5 pilares do seu negócio.' },
-                  { icon: TrendingUp, t: 'Oportunidades de crescimento', d: 'Onde está o ROI e o que está desperdiçando dinheiro.' },
-                  { icon: FileText, t: 'Relatório executivo em PDF', d: '15+ páginas, score de saúde e recomendações.' },
-                  { icon: Calendar, t: 'Plano de ação 30/90/365', d: 'O que fazer hoje, em 90 dias e em 1 ano.' },
-                ].map((b) => (
-                  <Card key={b.t}>
-                    <CardContent className="flex gap-3 p-5">
-                      <b.icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                      <div>
-                        <h3 className="font-semibold">{b.t}</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">{b.d}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                <p className="text-foreground">
+                  Você sai com um <strong>plano claro de ação para os próximos 90, 180 e 365 dias</strong>.
+                  Sem mais dúvidas. Sem mais incertezas. Só clareza e direção.
+                </p>
               </div>
             </div>
           </div>
@@ -207,12 +185,8 @@ const Landing = () => {
         <section id="produtos" className="border-b bg-muted/30 py-20 md:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                Qual é o seu próximo passo?
-              </h2>
-              <p className="mt-3 text-muted-foreground">
-                Escolha a opção que melhor se encaixa no seu momento.
-              </p>
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Qual é o seu próximo passo?</h2>
+              <p className="mt-3 text-muted-foreground">Escolha a opção que melhor se encaixa no seu momento.</p>
             </div>
 
             <div className="mx-auto mt-12 grid max-w-5xl gap-6 lg:grid-cols-2">
@@ -225,21 +199,26 @@ const Landing = () => {
                   </div>
                   <p className="text-sm text-muted-foreground">Análise profunda + relatório em PDF</p>
                   <div className="my-6">
-                    <div className="text-4xl font-bold">R$ 197</div>
-                    <div className="mt-1 text-sm text-muted-foreground">
-                      <Clock className="mr-1 inline h-3 w-3" /> Entrega em até 48 horas
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm text-muted-foreground">Investimento:</span>
+                      <span className="text-4xl font-bold">R$ 197</span>
+                    </div>
+                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium">
+                      <Clock className="h-3 w-3" /> Entrega em 48 horas
                     </div>
                   </div>
-                  <ul className="space-y-3 text-sm">
+
+                  <p className="mb-3 text-sm font-semibold">📋 O que você recebe:</p>
+                  <ul className="space-y-2.5 text-sm">
                     {[
                       'Análise profunda com IA Enterprise-Grade',
-                      'Avaliação dos 5 pilares do negócio',
-                      'Relatório em PDF de 15+ páginas',
+                      'Avaliação completa dos 5 pilares do negócio',
+                      'Relatório em PDF de 15+ páginas (design profissional)',
                       'Score de saúde do negócio (0–100)',
                       'Classificação em quadrantes',
                       'Plano de ação para 30, 90 e 365 dias',
                       'Análise de estratégias e ROI',
-                      'Identificação de oportunidades',
+                      'Identificação de oportunidades (upsell, cross-sell, novos canais)',
                     ].map((item) => (
                       <li key={item} className="flex gap-2">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -247,13 +226,24 @@ const Landing = () => {
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-8 space-y-3">
-                    <Button asChild size="lg" variant="outline" className="w-full">
-                      <Link to={ctaHref}>Contratar diagnóstico rápido</Link>
-                    </Button>
-                    <p className="text-center text-xs text-muted-foreground">
-                      Ideal para quem quer clareza rápida e prefere autonomia.
+
+                  <div className="mt-6 rounded-lg border border-dashed bg-muted/40 p-4 text-xs">
+                    <p className="font-semibold text-foreground">Ideal para:</p>
+                    <p className="mt-1 text-muted-foreground">
+                      Quem quer clareza rápido, tem orçamento limitado, prefere autonomia ou quer validar ideias.
                     </p>
+                    <p className="mt-3 flex items-start gap-1.5 font-semibold text-foreground">
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Limitação:
+                    </p>
+                    <p className="mt-1 text-muted-foreground">
+                      Você recebe o relatório, mas sem reunião de direcionamento, pode ter dúvidas sobre como executar.
+                    </p>
+                  </div>
+
+                  <div className="mt-6">
+                    <Button asChild size="lg" variant="outline" className="w-full">
+                      <Link to={ctaHref}>👉 Contratar Diagnóstico Rápido</Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -268,25 +258,29 @@ const Landing = () => {
                 <CardContent className="flex flex-1 flex-col p-8">
                   <div className="mb-4 flex items-center gap-2">
                     <Award className="h-5 w-5 text-primary" />
-                    <h3 className="text-xl font-bold">Diagnóstico Completo</h3>
+                    <h3 className="text-xl font-bold">Diagnóstico Completo + Reunião</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Análise + relatório + reunião 1:1 com Anderson Gomes
                   </p>
                   <div className="my-6">
-                    <div className="text-4xl font-bold">R$ 297</div>
-                    <div className="mt-1 text-sm text-muted-foreground">
-                      <Clock className="mr-1 inline h-3 w-3" /> Entrega em até 5 dias úteis
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm text-muted-foreground">Investimento:</span>
+                      <span className="text-4xl font-bold">R$ 297</span>
+                    </div>
+                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium">
+                      <Clock className="h-3 w-3" /> Entrega em 5 dias úteis
                     </div>
                   </div>
-                  <p className="mb-3 text-sm font-medium">Tudo do plano rápido, mais:</p>
-                  <ul className="space-y-3 text-sm">
+
+                  <p className="mb-3 text-sm font-semibold">📋 Tudo do plano rápido, mais:</p>
+                  <ul className="space-y-2.5 text-sm">
                     {[
                       'Reunião 1:1 de 60 minutos com Anderson Gomes',
-                      'Direcionamento estratégico personalizado',
-                      'Identificação de quick wins',
-                      'Resposta a perguntas específicas',
-                      'Acesso a recursos e templates exclusivos',
+                      'Direcionamento estratégico (prioridades + roadmap)',
+                      'Identificação de quick wins (resultado rápido)',
+                      'Resposta a perguntas específicas do seu negócio',
+                      'Acesso a recursos exclusivos (templates, checklists, fornecedores)',
                       'Suporte por 30 dias por email',
                     ].map((item) => (
                       <li key={item} className="flex gap-2">
@@ -295,13 +289,26 @@ const Landing = () => {
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-8 space-y-3">
-                    <Button asChild size="lg" className="w-full">
-                      <Link to={ctaHref}>Contratar diagnóstico completo</Link>
-                    </Button>
-                    <p className="text-center text-xs text-muted-foreground">
-                      Ideal para quem quer máxima clareza e implementação garantida.
+
+                  <div className="mt-6 rounded-lg border border-dashed bg-primary/5 p-4 text-xs">
+                    <p className="font-semibold text-foreground">Ideal para:</p>
+                    <p className="mt-1 text-muted-foreground">
+                      Quem quer garantia de resultado, precisa de orientação prática, quer implementar rápido ou
+                      tem negócio em estágio crítico.
                     </p>
+                    <p className="mt-3 flex items-start gap-1.5 font-semibold text-foreground">
+                      <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> Diferencial:
+                    </p>
+                    <p className="mt-1 text-muted-foreground">
+                      Você não recebe só um relatório. Recebe um <strong className="text-foreground">plano executável</strong> e
+                      o acompanhamento para começar hoje.
+                    </p>
+                  </div>
+
+                  <div className="mt-6">
+                    <Button asChild size="lg" className="w-full">
+                      <Link to={ctaHref}>👉 Contratar Diagnóstico Completo</Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -315,8 +322,8 @@ const Landing = () => {
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="p-4 text-left font-semibold">Recurso</th>
-                      <th className="p-4 text-center font-semibold">Rápido<div className="text-xs text-muted-foreground">R$ 197</div></th>
-                      <th className="p-4 text-center font-semibold">Completo<div className="text-xs text-muted-foreground">R$ 297</div></th>
+                      <th className="p-4 text-center font-semibold">Rápido<div className="text-xs font-normal text-muted-foreground">R$ 197</div></th>
+                      <th className="p-4 text-center font-semibold">Completo<div className="text-xs font-normal text-muted-foreground">R$ 297</div></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -357,47 +364,80 @@ const Landing = () => {
         {/* AUTORIDADE */}
         <section className="border-b py-20 md:py-24">
           <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-4xl">
+            <div className="mx-auto max-w-5xl">
               <div className="text-center">
                 <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                  Por que confiar no meu trabalho?
+                  Por que você deveria confiar em mim?
                 </h2>
-                <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-                  Não sou um "guru" que vende ilusões. Sou um profissional com mais de 10 anos de experiência
-                  real no mercado digital.
+                <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+                  Não sou um "guru" de internet que vende ilusões. Sou um profissional com{' '}
+                  <strong className="text-foreground">10+ anos</strong> de experiência real no mercado.
                 </p>
+                <p className="mt-2 font-semibold text-foreground">Aqui estão os números:</p>
               </div>
 
-              <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {[
-                  { n: '+R$ 40M', t: 'em resultados gerenciados', icon: TrendingUp },
-                  { n: '10+ anos', t: 'de experiência no mercado', icon: Award },
-                  { n: 'Centenas', t: 'de experts atendidos', icon: Users },
-                  { n: '6 nichos', t: 'mapeados em profundidade', icon: Target },
+                  {
+                    icon: TrendingUp,
+                    n: '+R$ 40 milhões',
+                    t: 'em resultados gerenciados',
+                    d: 'Não em teoria. Em resultados reais de clientes.',
+                  },
+                  {
+                    icon: Building2,
+                    n: 'SENAI · Coca-Cola · Jovem Pan',
+                    t: 'entre as marcas atendidas',
+                    d: 'Confiam na minha estratégia e metodologia.',
+                  },
+                  {
+                    icon: Users,
+                    n: 'Centenas de clientes',
+                    t: 'experts, infoprodutores, agências e consultores',
+                    d: 'Que cresceram seus negócios com minha orientação.',
+                  },
+                  {
+                    icon: Video,
+                    n: '6 depoimentos reais',
+                    t: 'em vídeo no YouTube',
+                    d: 'Anderson Maisse, Andreza Emerick, Anderson Souza, Bruno Nascimento, Marta Giove e Matheus Simões.',
+                  },
+                  {
+                    icon: GraduationCap,
+                    n: 'Metodologia testada',
+                    t: 'desenvolvida em 10+ anos',
+                    d: 'Refinada com centenas de casos. Documentada e estruturada.',
+                  },
+                  {
+                    icon: Lightbulb,
+                    n: 'Conhecimento vertical',
+                    t: 'dos principais nichos digitais',
+                    d: 'Infoprodutos, agências de lançamento, marketing digital, consultoria B2B.',
+                  },
                 ].map((s) => (
-                  <Card key={s.t}>
-                    <CardContent className="p-6 text-center">
-                      <s.icon className="mx-auto mb-3 h-6 w-6 text-primary" />
-                      <div className="text-2xl font-bold">{s.n}</div>
-                      <div className="mt-1 text-sm text-muted-foreground">{s.t}</div>
+                  <Card key={s.n}>
+                    <CardContent className="p-6">
+                      <s.icon className="mb-3 h-6 w-6 text-primary" />
+                      <div className="text-lg font-bold leading-tight">{s.n}</div>
+                      <div className="mt-1 text-sm font-medium text-muted-foreground">{s.t}</div>
+                      <div className="mt-3 text-xs text-muted-foreground">{s.d}</div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
 
-              <div className="mt-10 rounded-lg border bg-card p-6 text-center">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Empresas que já confiaram no meu trabalho
+              <div className="mx-auto mt-12 max-w-3xl rounded-lg border bg-card p-6 text-center md:p-8">
+                <p className="text-2xl font-bold">Não é sorte. É SISTEMA.</p>
+                <p className="mt-3 text-muted-foreground">
+                  E esse sistema funciona porque é baseado em <strong className="text-foreground">dados reais</strong>,{' '}
+                  <strong className="text-foreground">experiência prática</strong>,{' '}
+                  <strong className="text-foreground">resultados comprovados</strong> e{' '}
+                  <strong className="text-foreground">metodologia estruturada</strong>.
                 </p>
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-lg font-semibold text-muted-foreground">
-                  <span>SENAI</span>
-                  <span className="text-muted-foreground/30">•</span>
-                  <span>Coca-Cola</span>
-                  <span className="text-muted-foreground/30">•</span>
-                  <span>Grupo Jovem Pan</span>
-                  <span className="text-muted-foreground/30">•</span>
-                  <span>+ Centenas de experts e infoprodutores</span>
-                </div>
+                <p className="mt-3 text-muted-foreground">
+                  Quando você contrata um diagnóstico comigo, não está pagando por opinião. Está pagando por
+                  conhecimento que levou 10+ anos para construir e que já gerou R$ 40 milhões em resultados para outros clientes.
+                </p>
               </div>
             </div>
           </div>
@@ -407,9 +447,7 @@ const Landing = () => {
         <section className="border-b bg-muted/30 py-20 md:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                O que dizem meus clientes
-              </h2>
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">O que dizem meus clientes</h2>
             </div>
             <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-2">
               {[
@@ -424,7 +462,7 @@ const Landing = () => {
                   r: 'Consultora de Marketing',
                 },
                 {
-                  q: 'Contratar o diagnóstico completo foi a melhor decisão. A reunião com Anderson me deu clareza sobre o que fazer nos próximos 12 meses. Já implementei 3 recomendações e estou vendo resultado.',
+                  q: 'Contratar o diagnóstico completo foi a melhor decisão que tomei. A reunião com Anderson me deu clareza sobre o que fazer nos próximos 12 meses. Já implementei 3 recomendações e estou vendo resultado.',
                   a: 'Anderson Souza',
                   r: 'Dono de Agência',
                 },
@@ -450,6 +488,17 @@ const Landing = () => {
                 </Card>
               ))}
             </div>
+            <div className="mt-10 text-center">
+              <Button asChild variant="outline" size="lg">
+                <a
+                  href="https://www.youtube.com/@andersongomesoficial"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Youtube className="mr-2 h-4 w-4" /> Ver todos os depoimentos no YouTube
+                </a>
+              </Button>
+            </div>
           </div>
         </section>
 
@@ -458,38 +507,34 @@ const Landing = () => {
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <div className="text-center">
-                <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                  Perguntas frequentes
-                </h2>
-                <p className="mt-3 text-muted-foreground">
-                  Tire suas dúvidas antes de contratar.
-                </p>
+                <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Perguntas frequentes</h2>
+                <p className="mt-3 text-muted-foreground">Tire suas dúvidas antes de contratar.</p>
               </div>
               <Accordion type="single" collapsible className="mt-10 w-full">
                 {[
                   {
                     q: 'Quanto tempo leva para eu ver resultado?',
-                    a: 'Depende do que você implementar. Alguns clientes veem resultado em dias (quando identificam um gargalo óbvio). Outros em semanas. Mas a maioria vê resultado significativo em 30–90 dias. O importante é que você terá um plano claro desde o dia 1, então não será mais "tentativa e erro".',
+                    a: 'Depende do que você implementar. Alguns clientes veem resultado em dias (quando identificam um gargalo óbvio). Outros em semanas (quando precisam testar uma nova estratégia). Mas a maioria vê resultado significativo em 30–90 dias. O importante é que você terá um plano claro desde o dia 1 — não será mais "tentativa e erro", será execução estratégica.',
                   },
                   {
                     q: 'O diagnóstico é genérico ou personalizado?',
-                    a: '100% personalizado. Você preenche um formulário detalhado sobre seu negócio, a IA analisa seus dados específicos e as recomendações são para você, não para "todo mundo".',
+                    a: '100% personalizado. Você preenche um formulário detalhado sobre seu negócio. A IA analisa seus dados específicos. As recomendações são para VOCÊ, não para "todo mundo". É como a diferença entre um personal trainer genérico e um que conhece sua história, seu corpo e seus objetivos. Muito mais efetivo.',
                   },
                   {
                     q: 'E se eu não gostar do diagnóstico?',
-                    a: 'Você tem 7 dias de garantia incondicional. Se não gostar, devolvemos 100% do seu investimento. Sem perguntas, sem complicações.',
+                    a: 'Você tem 7 dias de garantia incondicional. Se não gostar, devolvemos 100% do seu dinheiro. Sem perguntas. Sem complicações. Mas aviso: 99% dos clientes amam o resultado, porque é real, prático e acionável.',
                   },
                   {
                     q: 'Qual a diferença entre o diagnóstico rápido e o completo?',
-                    a: 'O rápido entrega o relatório em PDF com tudo que você precisa saber. O completo adiciona uma reunião 1:1 de 60 minutos comigo para esclarecer dúvidas, priorizar ações, identificar quick wins e ter um plano executável.',
+                    a: 'O rápido é perfeito se você quer CLAREZA — você recebe um relatório profissional com tudo que precisa saber. O completo é para quem quer GARANTIA DE IMPLEMENTAÇÃO — você recebe o relatório MAIS uma reunião 1:1 comigo para esclarecer dúvidas, priorizar ações, identificar quick wins e ter um plano executável. Se tem dúvidas sobre como implementar, escolha o completo. Se quer só a análise, escolha o rápido.',
                   },
                   {
                     q: 'Funciona para qualquer nicho?',
-                    a: 'Sim. Atende infoprodutores, agências de lançamento, consultores de marketing, coaches, agências e qualquer negócio digital. A IA se adapta ao seu nicho específico.',
+                    a: 'Sim. Funciona para infoprodutores, agências de lançamento, consultores de marketing digital, coaches, agências de marketing e qualquer negócio digital. A IA se adapta ao seu nicho específico.',
                   },
                   {
-                    q: 'Como funciona a reunião do plano completo?',
-                    a: '1) Você contrata; 2) Preenche o formulário detalhado; 3) Eu analiso seus dados; 4) Você recebe o relatório em PDF; 5) Marcamos uma reunião de 60 minutos; 6) Na reunião, eu explico tudo, respondo dúvidas e construímos um plano de ação.',
+                    q: 'Como funciona a reunião do diagnóstico completo?',
+                    a: 'Simples: 1) Você contrata o diagnóstico completo; 2) Preenche o formulário detalhado; 3) Eu analiso seus dados (48h); 4) Você recebe o relatório em PDF; 5) Marcamos uma reunião de 60 minutos; 6) Na reunião, eu explico tudo, respondo dúvidas e criamos um plano. Você sai com clareza e direção.',
                   },
                 ].map((item, i) => (
                   <AccordionItem key={i} value={`item-${i}`}>
@@ -498,6 +543,65 @@ const Landing = () => {
                   </AccordionItem>
                 ))}
               </Accordion>
+            </div>
+          </div>
+        </section>
+
+        {/* URGÊNCIA */}
+        <section className="border-b bg-gradient-to-br from-accent/40 via-background to-background py-20 md:py-24">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-3xl">
+              <div className="text-center">
+                <Badge variant="secondary" className="mb-4">
+                  <Clock className="mr-1 h-3 w-3" /> Atenção
+                </Badge>
+                <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                  A pergunta não é "posso pagar R$ 197?"
+                </h2>
+                <p className="mt-4 text-xl font-medium text-muted-foreground">
+                  É <span className="text-foreground">"quanto estou perdendo por NÃO saber o que fazer?"</span>
+                </p>
+              </div>
+
+              <div className="mt-10 space-y-4 text-lg text-muted-foreground">
+                <p>
+                  Cada dia que passa sem saber qual é o seu gargalo... cada dia que você continua com a estratégia
+                  errada... cada dia que você não tem um plano... é dinheiro que você está perdendo.
+                </p>
+              </div>
+
+              <Card className="mt-8 border-primary/40">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex items-start gap-3">
+                    <DollarSign className="mt-1 h-6 w-6 shrink-0 text-primary" />
+                    <div>
+                      <p className="font-semibold text-foreground">Faça a conta:</p>
+                      <p className="mt-2 text-muted-foreground">
+                        Se você fatura <strong className="text-foreground">R$ 10 mil/mês</strong> e está deixando{' '}
+                        <strong className="text-foreground">20% na mesa</strong>, são{' '}
+                        <strong className="text-foreground">R$ 2 mil/mês</strong> perdidos.{' '}
+                        <strong className="text-foreground">R$ 24 mil por ano.</strong>
+                      </p>
+                      <p className="mt-3 text-muted-foreground">
+                        Um diagnóstico de R$ 197 que recupera apenas 10% disso{' '}
+                        <strong className="text-foreground">se paga em dias</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <p className="mt-8 text-center text-lg font-semibold text-foreground">
+                Não pense em quanto você vai gastar. Pense em quanto você vai ganhar.
+              </p>
+
+              <div className="mt-8 flex justify-center">
+                <Button asChild size="lg">
+                  <a href="#produtos">
+                    Quero contratar agora <ArrowRight className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
@@ -513,22 +617,28 @@ const Landing = () => {
                 Garantia incondicional de 7 dias
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-                Se você não achar o diagnóstico útil, devolvemos 100% do seu investimento. Sem perguntas,
-                sem complicações, sem burocracia. O único risco é você não agir com base nas recomendações.
+                Se você não achar o diagnóstico útil, devolvemos 100% do seu investimento. Sem perguntas, sem
+                complicações, sem burocracia.
+              </p>
+              <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+                Mas sendo honesto: 99% dos clientes amam o resultado. Porque é{' '}
+                <strong className="text-foreground">real</strong>, é{' '}
+                <strong className="text-foreground">prático</strong> e é{' '}
+                <strong className="text-foreground">acionável</strong>. O único "risco" é você não agir com base
+                nas recomendações.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button asChild size="lg" className="w-full sm:w-auto">
                   <Link to={ctaHref}>
-                    Contratar agora com garantia
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    Contratar Diagnóstico Completo (R$ 297) <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                  <Link to="/como-funciona">Ver como funciona</Link>
+                  <Link to={ctaHref}>Contratar Diagnóstico Rápido (R$ 197)</Link>
                 </Button>
               </div>
-              <p className="mt-6 text-sm text-muted-foreground">
-                A pergunta não é "posso pagar R$ 197?". É <strong className="text-foreground">"quanto estou perdendo por não saber o que fazer?"</strong>
+              <p className="mt-6 text-xs text-muted-foreground">
+                Pagamento seguro via Hotmart/Kiwify · Liberação automática após o pagamento
               </p>
             </div>
           </div>
@@ -539,15 +649,9 @@ const Landing = () => {
         <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row">
           <span>© {new Date().getFullYear()} Anderson Gomes — Diagnóstico de Negócios Digitais</span>
           <div className="flex gap-4">
-            <Link to="/como-funciona" className="hover:text-foreground">
-              Como funciona
-            </Link>
-            <Link to="/login" className="hover:text-foreground">
-              Entrar
-            </Link>
-            <Link to="/signup" className="hover:text-foreground">
-              Criar conta
-            </Link>
+            <Link to="/como-funciona" className="hover:text-foreground">Como funciona</Link>
+            <Link to="/login" className="hover:text-foreground">Entrar</Link>
+            <Link to="/signup" className="hover:text-foreground">Criar conta</Link>
           </div>
         </div>
       </footer>
