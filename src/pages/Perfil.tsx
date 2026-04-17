@@ -14,6 +14,7 @@ import { UserAvatarMenu } from '@/components/UserAvatarMenu';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Download, Loader2, FileText, ClipboardList, Upload, Trash2, KeyRound, Eye, EyeOff, Coins, ShoppingCart, History } from 'lucide-react';
 import { useCreditos } from '@/hooks/useCreditos';
+import { PasswordStrength, isPasswordStrong } from '@/components/PasswordStrength';
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
 const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -68,8 +69,12 @@ const Perfil = () => {
 
   const handleChangePassword = async (e: FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 6) {
-      toast({ title: 'Senha muito curta', description: 'Use pelo menos 6 caracteres.', variant: 'destructive' });
+    if (!isPasswordStrong(newPassword)) {
+      toast({
+        title: 'Senha fraca',
+        description: 'Use ao menos 8 caracteres com maiúscula, número e símbolo.',
+        variant: 'destructive',
+      });
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -436,9 +441,9 @@ const Perfil = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                     autoComplete="new-password"
-                    minLength={6}
+                    minLength={8}
                   />
                   <button
                     type="button"
@@ -449,6 +454,7 @@ const Perfil = () => {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <PasswordStrength password={newPassword} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
@@ -459,7 +465,7 @@ const Perfil = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repita a nova senha"
                   autoComplete="new-password"
-                  minLength={6}
+                  minLength={8}
                 />
               </div>
               <Button type="submit" disabled={changingPassword || !newPassword || !confirmPassword}>
