@@ -131,20 +131,38 @@ export function useDiagnosticoRascunho() {
     [user, state.id, state.segmento, state.empresa_nome, toast]
   );
 
-  const finalizar = useCallback(async () => {
-    if (!user || !state.id) return false;
+  const finalizar = useCallback(async (): Promise<string | null> => {
+    if (!user || !state.id) return null;
     setSaving(true);
     const { error } = await supabase
       .from('diagnosticos')
-      .update({ status: 'em_analise', concluido_em: new Date().toISOString() })
+      .update({ status: 'em_analise' })
       .eq('id', state.id);
-    setSaving(false);
+
     if (error) {
+      setSaving(false);
       toast({ title: 'Erro ao finalizar', description: error.message, variant: 'destructive' });
-      return false;
+      return null;
     }
-    toast({ title: 'Diagnóstico enviado', description: 'Sua análise está sendo processada.' });
-    return true;
+
+    // Dispara processamento IA (RAG + análise)
+    const diagId = state.id;
+    const { error: fnError } = await supabase.functions.invoke('process-diagnostico', {
+      body: { diagnostico_id: diagId },
+    });
+    setSaving(false);
+
+    if (fnError) {
+      toast({
+        title: 'Análise IA com erro',
+        description: fnError.message + ' — você pode reprocessar depois.',
+        variant: 'destructive',
+      });
+      return diagId; // navega mesmo assim, status fica em_analise
+    }
+
+    toast({ title: 'Diagnóstico concluído', description: 'Veja o resultado abaixo.' });
+    return diagId;
   }, [user, state.id, toast]);
 
   const resetar = useCallback(() => setState(EMPTY), []);
