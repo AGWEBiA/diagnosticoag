@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import Landing from "./pages/Landing";
+import ComoFunciona from "./pages/ComoFunciona";
 import Perfil from "./pages/Perfil";
 import Diagnostico from "./pages/Diagnostico";
 import Agendar from "./pages/Agendar";
