@@ -1,4 +1,5 @@
-import { Pergunta, Respostas } from '@/config/diagnosticoSchema';
+import { Pergunta } from '@/config/diagnosticoSchema';
+import { Respostas } from '@/hooks/useDiagnosticoRascunho';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

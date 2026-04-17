@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
-import { Pergunta, Respostas, getEtapasPorSegmento, TOTAL_ETAPAS } from '@/config/diagnosticoSchema';
+import { Pergunta, getEtapasPorSegmento, TOTAL_ETAPAS } from '@/config/diagnosticoSchema';
 import { PerguntaField } from '@/components/diagnostico/PerguntaField';
-import { useDiagnosticoRascunho } from '@/hooks/useDiagnosticoRascunho';
+import { useDiagnosticoRascunho, Respostas } from '@/hooks/useDiagnosticoRascunho';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, Shield } from 'lucide-react';
 
