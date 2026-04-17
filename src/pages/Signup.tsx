@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { PasswordStrength, isPasswordStrong } from '@/components/PasswordStrength';
 
 const Signup = () => {
   const [fullName, setFullName] = useState('');
@@ -19,10 +20,10 @@ const Signup = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
+    if (!isPasswordStrong(password)) {
       toast({
-        title: 'Senha muito curta',
-        description: 'Use pelo menos 6 caracteres',
+        title: 'Senha fraca',
+        description: 'Use ao menos 8 caracteres com maiúscula, número e símbolo.',
         variant: 'destructive',
       });
       return;
@@ -90,11 +91,12 @@ const Signup = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                minLength={6}
+                placeholder="Mínimo 8 caracteres"
+                minLength={8}
                 required
                 autoComplete="new-password"
               />
+              <PasswordStrength password={password} />
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
