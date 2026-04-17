@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useRef, ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,8 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Download, Loader2, FileText, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Download, Loader2, FileText, ClipboardList, Upload, Trash2 } from 'lucide-react';
+
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
+const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 type DiagStatus = 'rascunho' | 'em_analise' | 'concluido' | 'arquivado';
 
