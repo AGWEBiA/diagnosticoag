@@ -15,29 +15,45 @@ interface AgendamentoConfig {
   descricao: string;
 }
 
+interface IaAlertasConfig {
+  custo_diario_limite_usd: number;
+}
+
 const DEFAULT: AgendamentoConfig = {
   url: '',
   titulo: 'Agende sua reunião',
   descricao: 'Seu diagnóstico foi enviado. Escolha um horário para revisarmos o resultado juntos.',
 };
 
+const DEFAULT_IA: IaAlertasConfig = {
+  custo_diario_limite_usd: 1,
+};
+
 const ConfiguracoesAdmin = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [config, setConfig] = useState<AgendamentoConfig>(DEFAULT);
+  const [iaAlertas, setIaAlertas] = useState<IaAlertasConfig>(DEFAULT_IA);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingIa, setSavingIa] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
         .from('app_settings')
-        .select('value')
-        .eq('key', 'agendamento')
-        .maybeSingle();
+        .select('key, value')
+        .in('key', ['agendamento', 'ia_alertas']);
       if (!error && data) {
-        const v = (data.value ?? {}) as Partial<AgendamentoConfig>;
-        setConfig({ ...DEFAULT, ...v });
+        for (const row of data) {
+          if (row.key === 'agendamento') {
+            const v = (row.value ?? {}) as Partial<AgendamentoConfig>;
+            setConfig({ ...DEFAULT, ...v });
+          } else if (row.key === 'ia_alertas') {
+            const v = (row.value ?? {}) as Partial<IaAlertasConfig>;
+            setIaAlertas({ ...DEFAULT_IA, ...v });
+          }
+        }
       }
       setLoading(false);
     })();
