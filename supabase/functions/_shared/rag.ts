@@ -28,7 +28,7 @@ export async function searchKnowledge(supabaseAdmin: any, query: string, opts?: 
   try {
     const emb = await generateEmbedding(query);
     const { data: matches, error } = await supabaseAdmin.rpc("match_knowledge", {
-      query_embedding: emb.vector as unknown as string,
+      query_embedding: emb.embedding as unknown as string,
       match_threshold: opts?.threshold ?? 0.5,
       match_count: opts?.count ?? 5,
     });
