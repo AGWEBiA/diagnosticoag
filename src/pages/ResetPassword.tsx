@@ -146,6 +146,7 @@ const ResetPassword = () => {
               Atualizar senha
             </Button>
           </form>
+          )}
         </CardContent>
       </Card>
     </div>
