@@ -38,7 +38,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Eye, Loader2 } from 'lucide-react';
+import { Eye, FileDown, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const PAGE_SIZE = 10;
 
@@ -66,11 +67,39 @@ const statusVariant: Record<DiagRow['status'], 'default' | 'secondary' | 'outlin
 };
 
 const DiagnosticosAdmin = () => {
+  const { toast } = useToast();
   const [status, setStatus] = useState<StatusFiltro>('todos');
   const [segmento, setSegmento] = useState('');
   const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState<DiagRow | null>(null);
   const [emails, setEmails] = useState<Record<string, string>>({});
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const handleGeneratePdf = async () => {
+    if (!viewing) return;
+    setGeneratingPdf(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gerar-pdf-diagnostico', {
+        body: { diagnostico_id: viewing.id },
+      });
+      if (error) throw error;
+      const url = (data as { signed_url?: string } | null)?.signed_url;
+      if (!url) throw new Error('Sem URL de download');
+      window.open(url, '_blank', 'noopener,noreferrer');
+      toast({
+        title: 'PDF gerado',
+        description: `Versão ${(data as { versao?: number }).versao ?? ''} pronta para download.`,
+      });
+    } catch (e) {
+      toast({
+        title: 'Erro ao gerar PDF',
+        description: e instanceof Error ? e.message : 'Tente novamente',
+        variant: 'destructive',
+      });
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
 
   useEffect(() => {
     setPage(1);
@@ -285,6 +314,21 @@ const DiagnosticosAdmin = () => {
               {viewing?.score != null && ` · score ${viewing.score}`}
             </DialogDescription>
           </DialogHeader>
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleGeneratePdf}
+              disabled={generatingPdf}
+            >
+              {generatingPdf ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="mr-2 h-4 w-4" />
+              )}
+              Gerar PDF
+            </Button>
+          </div>
           <Tabs defaultValue="resumo" className="w-full">
             <TabsList>
               <TabsTrigger value="resumo">Resumo</TabsTrigger>
