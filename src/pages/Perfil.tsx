@@ -12,7 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserAvatarMenu } from '@/components/UserAvatarMenu';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Download, Loader2, FileText, ClipboardList, Upload, Trash2, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Download, Loader2, FileText, ClipboardList, Upload, Trash2, KeyRound, Eye, EyeOff, Coins, ShoppingCart, History } from 'lucide-react';
+import { useCreditos } from '@/hooks/useCreditos';
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
 const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -37,12 +38,27 @@ const Perfil = () => {
   const { user, updatePassword } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { creditos, loading: creditosLoading } = useCreditos();
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const comprasQuery = useQuery({
+    queryKey: ['perfil-compras', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('creditos_diagnostico')
+        .select('id, origem, transacao_externa_id, created_at, consumido_em, diagnostico_id, metadata, produto_id')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   // Alterar senha
   const [newPassword, setNewPassword] = useState('');
@@ -322,6 +338,82 @@ const Perfil = () => {
                 </Button>
               </form>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Créditos de diagnóstico */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Coins className="h-4 w-4 text-primary" />
+              Diagnósticos disponíveis
+            </CardTitle>
+            <CardDescription>Cada diagnóstico finalizado consome 1 saldo.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                {creditosLoading ? (
+                  <Skeleton className="h-10 w-24" />
+                ) : (
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold tabular-nums">{creditos}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {creditos === 1 ? 'diagnóstico' : 'diagnósticos'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <Button asChild>
+                <Link to="/comprar">
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Comprar mais diagnósticos
+                </Link>
+              </Button>
+            </div>
+
+            {/* Histórico */}
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-2 text-sm font-medium">
+                <History className="h-4 w-4 text-muted-foreground" />
+                Histórico de compras
+              </div>
+              {comprasQuery.isLoading ? (
+                <Skeleton className="h-16 w-full" />
+              ) : (comprasQuery.data?.length ?? 0) === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nenhuma compra registrada ainda.
+                </p>
+              ) : (
+                <ul className="divide-y rounded-md border">
+                  {comprasQuery.data!.map((c) => {
+                    const usado = !!c.diagnostico_id;
+                    const origemLabel =
+                      c.origem === 'cortesia' ? 'Bônus de boas-vindas' :
+                      c.origem === 'hotmart' ? 'Hotmart' :
+                      c.origem === 'kiwify' ? 'Kiwify' :
+                      c.origem === 'admin' ? 'Concedido pelo admin' :
+                      c.origem;
+                    return (
+                      <li key={c.id} className="px-3 py-2 flex items-center justify-between gap-3 text-sm">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium">{origemLabel}</span>
+                            <Badge variant={usado ? 'outline' : 'default'} className="text-[10px]">
+                              {usado ? 'Utilizado' : 'Disponível'}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(c.created_at).toLocaleDateString('pt-BR')}
+                            {c.transacao_externa_id ? ` · #${c.transacao_externa_id.slice(0, 12)}` : ''}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </CardContent>
         </Card>
 
