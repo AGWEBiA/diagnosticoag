@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatarMenu } from '@/components/UserAvatarMenu';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Download, Loader2, FileText, ClipboardList, Upload, Trash2 } from 'lucide-react';
 
@@ -33,7 +34,7 @@ const statusVariant: Record<DiagStatus, 'secondary' | 'default' | 'outline'> = {
 };
 
 const Perfil = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [fullName, setFullName] = useState('');
@@ -208,9 +209,7 @@ const Perfil = () => {
               <ArrowLeft className="mr-2 h-4 w-4" /> Início
             </Link>
           </Button>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            Sair
-          </Button>
+          <UserAvatarMenu />
         </div>
       </header>
 

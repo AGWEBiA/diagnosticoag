@@ -3,14 +3,13 @@ import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { UserAvatarMenu } from '@/components/UserAvatarMenu';
 import {
   ArrowRight,
   BrainCircuit,
   ShieldCheck,
   Target,
   LogIn,
-  LayoutDashboard,
-  User as UserIcon,
 } from 'lucide-react';
 
 const beneficios = [
@@ -35,8 +34,7 @@ const beneficios = [
 ];
 
 const Landing = () => {
-  const { user, hasRole } = useAuth();
-  const isAdmin = hasRole('admin');
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -69,23 +67,12 @@ const Landing = () => {
           <nav className="flex items-center gap-2">
             {user ? (
               <>
-                {isAdmin && (
-                  <Button asChild variant="ghost" size="sm">
-                    <Link to="/admin">
-                      <LayoutDashboard className="mr-2 h-4 w-4" /> Admin
-                    </Link>
-                  </Button>
-                )}
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/perfil">
-                    <UserIcon className="mr-2 h-4 w-4" /> Perfil
-                  </Link>
-                </Button>
-                <Button asChild size="sm">
+                <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
                   <Link to="/diagnostico">
                     Meu diagnóstico <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
+                <UserAvatarMenu />
               </>
             ) : (
               <>

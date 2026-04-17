@@ -9,7 +9,8 @@ import { Pergunta, getEtapasPorSegmento, TOTAL_ETAPAS } from '@/config/diagnosti
 import { PerguntaField } from '@/components/diagnostico/PerguntaField';
 import { useDiagnosticoRascunho, Respostas } from '@/hooks/useDiagnosticoRascunho';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, Shield } from 'lucide-react';
+import { UserAvatarMenu } from '@/components/UserAvatarMenu';
+import { supabase } from '@/integrations/supabase/client';
 
 function validarPergunta(p: Pergunta, value: unknown, all: Respostas): string | null {
   if (p.obrigatoria) {
@@ -40,12 +41,13 @@ function validarMetas(r: Respostas): string | null {
 const Diagnostico = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signOut, hasRole } = useAuth();
+  const { user } = useAuth();
   const { state, loading, saving, salvarEtapa, finalizar } = useDiagnosticoRascunho();
 
   const [respostas, setRespostas] = useState<Respostas>({});
   const [etapaIdx, setEtapaIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [aguardandoIA, setAguardandoIA] = useState<string | null>(null);
 
   // Hidrata estado local quando rascunho carregar
   useEffect(() => {
@@ -115,14 +117,63 @@ const Diagnostico = () => {
     if (diagId) {
       setRespostas({});
       setEtapaIdx(0);
-      navigate(`/agendar/${diagId}`);
+      // Aguarda realtime confirmar status='concluido' antes de redirecionar
+      setAguardandoIA(diagId);
+      // Fallback: se realtime não chegar, redireciona em 8s mesmo assim
+      setTimeout(() => {
+        setAguardandoIA((cur) => {
+          if (cur === diagId) {
+            navigate(`/agendar/${diagId}`);
+            return null;
+          }
+          return cur;
+        });
+      }, 8000);
     }
   };
+
+  // Realtime: ouve status do diagnóstico e redireciona quando concluído
+  useEffect(() => {
+    if (!aguardandoIA) return;
+    const channel = supabase
+      .channel(`diag-${aguardandoIA}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'diagnosticos',
+          filter: `id=eq.${aguardandoIA}`,
+        },
+        (payload) => {
+          const status = (payload.new as { status?: string })?.status;
+          if (status === 'concluido') {
+            navigate(`/agendar/${aguardandoIA}`);
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [aguardandoIA, navigate]);
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (aguardandoIA) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <h2 className="text-lg font-semibold">Processando seu diagnóstico…</h2>
+        <p className="text-sm text-muted-foreground max-w-sm">
+          A IA está analisando suas respostas. Você será redirecionado automaticamente assim que terminar.
+        </p>
       </div>
     );
   }
@@ -137,18 +188,7 @@ const Diagnostico = () => {
             <h1 className="text-lg font-semibold">Diagnóstico de Negócio</h1>
             <p className="text-xs text-muted-foreground">{user?.email}</p>
           </div>
-          <div className="flex items-center gap-2">
-            {hasRole('admin') && (
-              <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>
-                <Shield className="mr-2 h-4 w-4" />
-                Admin
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={signOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </Button>
-          </div>
+          <UserAvatarMenu />
         </div>
       </header>
 

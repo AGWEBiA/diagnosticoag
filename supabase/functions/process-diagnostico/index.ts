@@ -1,11 +1,13 @@
 // Edge function: process-diagnostico
 // Processa um diagnóstico (status='em_analise'), faz RAG via match_knowledge
 // e gera resumo executivo + recomendações + score usando Lovable AI Gateway.
-// Atualiza diagnostico para 'concluido' e registra audit_trail_ia + operacoes_ia.
 // Hardening: retry com fallback de modelo, custo_usd real, auto-flag confiança baixa.
+// Refatorado: lógica de IA, RAG e pricing extraídas para _shared/.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { generateEmbedding } from "../_shared/embeddings.ts";
+import { calcCustoUsd } from "../_shared/pricing.ts";
+import { callAIWithFallback } from "../_shared/ai-client.ts";
+import { buildQueryFromRespostas, formatRagContext, searchKnowledge } from "../_shared/rag.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,19 +18,10 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 
-// Modelo primário e fallback
 const PRIMARY_MODEL = "google/gemini-2.5-flash";
 const FALLBACK_MODEL = "google/gemini-2.5-pro";
-
-// Preços USD por 1M tokens (Lovable AI Gateway — aproximação para auditoria)
-const PRICES_PER_1M: Record<string, { in: number; out: number }> = {
-  "google/gemini-2.5-flash": { in: 0.075, out: 0.30 },
-  "google/gemini-2.5-pro": { in: 1.25, out: 5.00 },
-  "google/gemini-2.5-flash-lite": { in: 0.0375, out: 0.15 },
-};
-
 const FLAG_THRESHOLD = 0.6;
 
 interface AnaliseEstruturada {
@@ -44,27 +37,37 @@ interface AnaliseEstruturada {
   }>;
 }
 
-function calcCustoUsd(model: string, tin: number, tout: number): number {
-  const p = PRICES_PER_1M[model];
-  if (!p) return 0;
-  return (tin / 1_000_000) * p.in + (tout / 1_000_000) * p.out;
-}
+const TOOL_DEFINITION = {
+  name: "submit_diagnostico",
+  description: "Retorna o diagnóstico estruturado.",
+  parameters: {
+    type: "object",
+    properties: {
+      resumo_executivo: { type: "string" },
+      score: { type: "number" },
+      confianca: { type: "number" },
+      recomendacoes: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            titulo: { type: "string" },
+            descricao: { type: "string" },
+            prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+            categoria: { type: "string" },
+            impacto_estimado: { type: "string" },
+          },
+          required: ["titulo", "descricao", "prioridade", "categoria", "impacto_estimado"],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["resumo_executivo", "score", "confianca", "recomendacoes"],
+    additionalProperties: false,
+  },
+};
 
-function buildQueryFromRespostas(respostas: Record<string, unknown>): string {
-  const parts: string[] = [];
-  if (respostas.segmento) parts.push(`Segmento: ${respostas.segmento}`);
-  if (respostas.faturamento_mensal)
-    parts.push(`Faturamento: ${respostas.faturamento_mensal}`);
-  if (respostas.maior_gargalo) parts.push(`Gargalo: ${respostas.maior_gargalo}`);
-  if (respostas.estrategia_maior_retorno)
-    parts.push(`Estratégia top: ${respostas.estrategia_maior_retorno}`);
-  if (respostas.estrategia_menor_retorno)
-    parts.push(`Estratégia fraca: ${respostas.estrategia_menor_retorno}`);
-  return parts.join(". ") || "diagnóstico de negócio digital";
-}
-
-function buildSystemPrompt(): string {
-  return `Você é um consultor sênior especializado em negócios digitais (infoprodutos, marketing digital, SaaS).
+const SYSTEM_PROMPT = `Você é um consultor sênior especializado em negócios digitais (infoprodutos, marketing digital, SaaS).
 Sua tarefa: gerar um diagnóstico ESTRATÉGICO baseado nas respostas do usuário e no CONTEXTO de conhecimento verificado fornecido.
 
 REGRAS CRÍTICAS ANTI-ALUCINAÇÃO:
@@ -77,131 +80,6 @@ REGRAS CRÍTICAS ANTI-ALUCINAÇÃO:
 7. Confiança (0-1): quanto mais respostas completas + contexto RAG relevante, maior.
 
 Retorne SEMPRE via tool call structured.`;
-}
-
-async function callAIOnce(
-  model: string,
-  systemPrompt: string,
-  userPrompt: string,
-): Promise<{ data: AnaliseEstruturada; tokens_in: number; tokens_out: number }> {
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
-  const response = await fetch(
-    "https://ai.gateway.lovable.dev/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "submit_diagnostico",
-              description: "Retorna o diagnóstico estruturado.",
-              parameters: {
-                type: "object",
-                properties: {
-                  resumo_executivo: { type: "string" },
-                  score: { type: "number" },
-                  confianca: { type: "number" },
-                  recomendacoes: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        titulo: { type: "string" },
-                        descricao: { type: "string" },
-                        prioridade: {
-                          type: "string",
-                          enum: ["alta", "media", "baixa"],
-                        },
-                        categoria: { type: "string" },
-                        impacto_estimado: { type: "string" },
-                      },
-                      required: [
-                        "titulo",
-                        "descricao",
-                        "prioridade",
-                        "categoria",
-                        "impacto_estimado",
-                      ],
-                      additionalProperties: false,
-                    },
-                  },
-                },
-                required: [
-                  "resumo_executivo",
-                  "score",
-                  "confianca",
-                  "recomendacoes",
-                ],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: {
-          type: "function",
-          function: { name: "submit_diagnostico" },
-        },
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    if (response.status === 429) throw new Error("rate_limit");
-    if (response.status === 402) throw new Error("payment_required");
-    if (response.status >= 500) throw new Error(`upstream_${response.status}`);
-    const t = await response.text();
-    throw new Error(`AI gateway error ${response.status}: ${t}`);
-  }
-
-  const json = await response.json();
-  const toolCall = json.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall) throw new Error("AI did not return tool_call");
-  const data = JSON.parse(toolCall.function.arguments) as AnaliseEstruturada;
-
-  return {
-    data,
-    tokens_in: json.usage?.prompt_tokens ?? 0,
-    tokens_out: json.usage?.completion_tokens ?? 0,
-  };
-}
-
-// Tenta modelo primário; em rate_limit/upstream_5xx, faz 1 retry no fallback.
-async function callAIWithFallback(
-  systemPrompt: string,
-  userPrompt: string,
-): Promise<{
-  data: AnaliseEstruturada;
-  tokens_in: number;
-  tokens_out: number;
-  modelo_usado: string;
-  fallback_usado: boolean;
-}> {
-  try {
-    const r = await callAIOnce(PRIMARY_MODEL, systemPrompt, userPrompt);
-    return { ...r, modelo_usado: PRIMARY_MODEL, fallback_usado: false };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    const retriable =
-      msg === "rate_limit" || msg.startsWith("upstream_5");
-    if (!retriable) throw e;
-    console.warn(
-      `Primary model ${PRIMARY_MODEL} falhou (${msg}); tentando fallback ${FALLBACK_MODEL}`,
-    );
-    const r = await callAIOnce(FALLBACK_MODEL, systemPrompt, userPrompt);
-    return { ...r, modelo_usado: FALLBACK_MODEL, fallback_usado: true };
-  }
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -236,19 +114,13 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const diagnosticoId = body?.diagnostico_id as string | undefined;
     if (!diagnosticoId) {
-      return new Response(
-        JSON.stringify({ error: "diagnostico_id required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return new Response(JSON.stringify({ error: "diagnostico_id required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const supabaseAdmin = createClient(
-      SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY,
-    );
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const { data: diag, error: diagErr } = await supabaseAdmin
       .from("diagnosticos")
@@ -286,45 +158,9 @@ Deno.serve(async (req) => {
     const respostas = (diag.respostas ?? {}) as Record<string, unknown>;
 
     // RAG
-    const query = buildQueryFromRespostas(respostas);
-    let ragContexto: Array<{
-      titulo: string;
-      conteudo: string;
-      categoria: string | null;
-      similarity: number;
-    }> = [];
-
-    try {
-      const emb = await generateEmbedding(query);
-      const { data: matches, error: matchErr } = await supabaseAdmin.rpc(
-        "match_knowledge",
-        {
-          query_embedding: emb.vector as unknown as string,
-          match_threshold: 0.5,
-          match_count: 5,
-        },
-      );
-      if (!matchErr && Array.isArray(matches)) {
-        ragContexto = matches.map((m: any) => ({
-          titulo: m.titulo,
-          conteudo: m.conteudo,
-          categoria: m.categoria,
-          similarity: m.similarity,
-        }));
-      }
-    } catch (e) {
-      console.warn("RAG falhou, prosseguindo sem contexto:", e);
-    }
-
-    const contextoTexto =
-      ragContexto.length > 0
-        ? ragContexto
-            .map(
-              (c, i) =>
-                `[${i + 1}] (${c.categoria ?? "geral"}) ${c.titulo}\n${c.conteudo}`,
-            )
-            .join("\n\n---\n\n")
-        : "(nenhum contexto adicional disponível)";
+    const ragQuery = buildQueryFromRespostas(respostas);
+    const ragContexto = await searchKnowledge(supabaseAdmin, ragQuery);
+    const contextoTexto = formatRagContext(ragContexto);
 
     const userPrompt = `# RESPOSTAS DO USUÁRIO
 \`\`\`json
@@ -337,21 +173,26 @@ ${contextoTexto}
 # TAREFA
 Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${diag.segmento ?? "não informado"}). Foque no maior gargalo declarado e em recomendações acionáveis nos próximos 90 dias.`;
 
-    const systemPrompt = buildSystemPrompt();
-
     let analise: AnaliseEstruturada;
     let tokens_in = 0;
     let tokens_out = 0;
     let modeloUsado = PRIMARY_MODEL;
     let fallbackUsado = false;
     try {
-      const result = await callAIWithFallback(systemPrompt, userPrompt);
+      const result = await callAIWithFallback<AnaliseEstruturada>({
+        apiKey: LOVABLE_API_KEY,
+        primaryModel: PRIMARY_MODEL,
+        fallbackModel: FALLBACK_MODEL,
+        systemPrompt: SYSTEM_PROMPT,
+        userPrompt,
+        tool: TOOL_DEFINITION,
+      });
       analise = result.data;
       tokens_in = result.tokens_in;
       tokens_out = result.tokens_out;
       modeloUsado = result.modelo_usado;
       fallbackUsado = result.fallback_usado;
-    } catch (e: any) {
+    } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       await supabaseAdmin.from("operacoes_ia").insert({
         user_id: userId,
@@ -366,31 +207,19 @@ Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${di
 
       if (msg === "rate_limit") {
         return new Response(
-          JSON.stringify({
-            error: "Rate limit excedido. Tente novamente em alguns instantes.",
-          }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
+          JSON.stringify({ error: "Rate limit excedido. Tente novamente em alguns instantes." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
       if (msg === "payment_required") {
         return new Response(
-          JSON.stringify({
-            error:
-              "Créditos de IA insuficientes. Adicione créditos no workspace.",
-          }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
+          JSON.stringify({ error: "Créditos de IA insuficientes. Adicione créditos no workspace." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
       throw e;
     }
 
-    // Atualiza diagnóstico
     const { error: updErr } = await supabaseAdmin
       .from("diagnosticos")
       .update({
@@ -406,7 +235,6 @@ Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${di
 
     if (updErr) throw updErr;
 
-    // Auto-flag por baixa confiança ou fallback usado
     const flagged = analise.confianca < FLAG_THRESHOLD || fallbackUsado;
     let flag_motivo: string | null = null;
     if (analise.confianca < FLAG_THRESHOLD) {
@@ -459,13 +287,8 @@ Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${di
   } catch (err) {
     console.error("process-diagnostico error:", err);
     return new Response(
-      JSON.stringify({
-        error: err instanceof Error ? err.message : "Internal error",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      JSON.stringify({ error: err instanceof Error ? err.message : "Internal error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
