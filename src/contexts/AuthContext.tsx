@@ -25,8 +25,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
 
+  const [rolesLoading, setRolesLoading] = useState(false);
+
   // Busca roles do user (deferida pra evitar deadlock no callback de auth)
   const fetchRoles = (userId: string) => {
+    setRolesLoading(true);
     setTimeout(async () => {
       const { data, error } = await supabase
         .from('user_roles')
@@ -34,7 +37,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('user_id', userId);
       if (!error && data) {
         setRoles(data.map((r) => r.role));
+      } else {
+        setRoles([]);
       }
+      setRolesLoading(false);
     }, 0);
   };
 
@@ -48,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           fetchRoles(newSession.user.id);
         } else {
           setRoles([]);
+          setRolesLoading(false);
         }
       }
     );
