@@ -38,12 +38,27 @@ const Perfil = () => {
   const { user, updatePassword } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { creditos, loading: creditosLoading } = useCreditos();
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const comprasQuery = useQuery({
+    queryKey: ['perfil-compras', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('creditos_diagnostico')
+        .select('id, origem, transacao_externa_id, created_at, consumido_em, diagnostico_id, metadata, produto_id')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   // Alterar senha
   const [newPassword, setNewPassword] = useState('');
