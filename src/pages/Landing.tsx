@@ -548,7 +548,7 @@ const Landing = () => {
         </section>
 
         {/* URGÊNCIA */}
-        <section className="border-b bg-gradient-to-br from-orange-500/5 via-background to-background py-20 md:py-24">
+        <section className="border-b bg-gradient-to-br from-accent/40 via-background to-background py-20 md:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <div className="text-center">
