@@ -231,7 +231,54 @@ const Perfil = () => {
             {profileQuery.isLoading ? (
               <Skeleton className="h-24 w-full" />
             ) : (
-              <form onSubmit={handleSave} className="space-y-4">
+              <form onSubmit={handleSave} className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarFile}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                      >
+                        {uploadingAvatar ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="mr-2 h-4 w-4" />
+                        )}
+                        {avatarUrl ? 'Trocar foto' : 'Enviar foto'}
+                      </Button>
+                      {avatarUrl && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAvatarRemove}
+                          disabled={uploadingAvatar}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Remover
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      JPG, PNG ou WebP, até 2 MB.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nome completo</Label>
                   <Input
@@ -242,17 +289,7 @@ const Perfil = () => {
                     maxLength={120}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="avatarUrl">URL do avatar (opcional)</Label>
-                  <Input
-                    id="avatarUrl"
-                    type="url"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://..."
-                    maxLength={500}
-                  />
-                </div>
+
                 <Button type="submit" disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Salvar
