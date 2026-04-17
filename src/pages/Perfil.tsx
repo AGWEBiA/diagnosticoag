@@ -34,7 +34,7 @@ const statusVariant: Record<DiagStatus, 'secondary' | 'default' | 'outline'> = {
 };
 
 const Perfil = () => {
-  const { user } = useAuth();
+  const { user, updatePassword } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [fullName, setFullName] = useState('');
@@ -43,6 +43,34 @@ const Perfil = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Alterar senha
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast({ title: 'Senha muito curta', description: 'Use pelo menos 6 caracteres.', variant: 'destructive' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: 'Senhas não conferem', description: 'Confirme a nova senha corretamente.', variant: 'destructive' });
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await updatePassword(newPassword);
+    setChangingPassword(false);
+    if (error) {
+      toast({ title: 'Erro ao alterar senha', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setNewPassword('');
+    setConfirmPassword('');
+    toast({ title: 'Senha atualizada', description: 'Sua nova senha já está ativa.' });
+  };
 
   const profileQuery = useQuery({
     queryKey: ['perfil', user?.id],
