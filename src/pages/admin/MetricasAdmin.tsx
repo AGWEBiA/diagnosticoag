@@ -226,11 +226,16 @@ const MetricasAdmin = () => {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          title="Custo total"
+          title="Custo total (30d)"
           value={fmtUsd(agg.custoTotal)}
           icon={DollarSign}
           loading={isLoading}
-          hint={`${agg.opsTotal} operações`}
+          hint={
+            limiteAtivo
+              ? `Hoje: ${fmtUsd(agg.custoHoje)} / ${fmtUsd(limite)}`
+              : `Hoje: ${fmtUsd(agg.custoHoje)} • limite não definido`
+          }
+          tone={excedeu ? 'warning' : 'default'}
         />
         <KpiCard
           title="Taxa de fallback"
