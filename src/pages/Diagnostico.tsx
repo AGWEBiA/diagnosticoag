@@ -166,6 +166,18 @@ const Diagnostico = () => {
     );
   }
 
+  if (aguardandoIA) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <h2 className="text-lg font-semibold">Processando seu diagnóstico…</h2>
+        <p className="text-sm text-muted-foreground max-w-sm">
+          A IA está analisando suas respostas. Você será redirecionado automaticamente assim que terminar.
+        </p>
+      </div>
+    );
+  }
+
   const progresso = ((etapaIdx + 1) / etapas.length) * 100;
 
   return (
