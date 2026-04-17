@@ -11,6 +11,7 @@ import Landing from "./pages/Landing";
 import Perfil from "./pages/Perfil";
 import Diagnostico from "./pages/Diagnostico";
 import Agendar from "./pages/Agendar";
+import Comprar from "./pages/Comprar";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
@@ -54,6 +55,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Diagnostico />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/comprar"
+                element={
+                  <ProtectedRoute>
+                    <Comprar />
                   </ProtectedRoute>
                 }
               />

@@ -196,6 +196,44 @@ const Diagnostico = () => {
     );
   }
 
+  // Paywall: usuário sem créditos e sem rascunho em andamento
+  if (!loading && !loadingCreditos && creditos === 0 && !state.id) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b">
+          <div className="container mx-auto flex items-center justify-between px-4 py-4">
+            <h1 className="text-lg font-semibold">Diagnóstico de Negócio</h1>
+            <UserAvatarMenu />
+          </div>
+        </header>
+        <main className="container mx-auto max-w-xl px-4 py-16">
+          <Card>
+            <CardHeader className="items-center text-center">
+              <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Lock className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle>Solicite seu diagnóstico</CardTitle>
+              <CardDescription>
+                Você ainda não tem um diagnóstico disponível. Escolha um plano para liberar sua análise estratégica completa.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-3">
+              <Button asChild className="w-full">
+                <Link to="/comprar">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Ver opções de diagnóstico
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" className="w-full">
+                <Link to="/perfil">Voltar ao perfil</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
   const progresso = ((etapaIdx + 1) / etapas.length) * 100;
 
   return (
