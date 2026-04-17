@@ -115,7 +115,7 @@ const Diagnostico = () => {
     if (diagId) {
       setRespostas({});
       setEtapaIdx(0);
-      navigate(`/resultado/${diagId}`);
+      navigate(`/agendar/${diagId}`);
     }
   };
 
