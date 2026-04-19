@@ -106,9 +106,18 @@ interface Risco {
   mitigacao?: string;
 }
 
+interface MaturidadeAreas {
+  aquisicao?: number;
+  conversao?: number;
+  retencao?: number;
+  operacional?: number;
+  financeiro?: number;
+}
+
 interface AnalisePayload {
   diagnostico_narrativo?: string;
   classificacao_maturidade?: string;
+  maturidade_areas?: MaturidadeAreas;
   swot?: {
     forcas?: string[];
     fraquezas?: string[];
@@ -228,6 +237,16 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
     contentW,
   );
   y += 20;
+
+  // ---------- 2b. RADAR DE MATURIDADE POR ÁREA ----------
+  if (payload.maturidade_areas) {
+    y = ensureSpace(230);
+    recordToc("Maturidade por área");
+    sectionEyebrow(doc, "MATURIDADE POR ÁREA", margin, y);
+    y += 14;
+    y = drawRadarMaturidade(doc, payload.maturidade_areas, margin, y, contentW);
+    y += 20;
+  }
 
   // ---------- 3. RESUMO EXECUTIVO ----------
   ensureSpace(100);
@@ -859,6 +878,136 @@ function classificarScore(s: number): string {
   if (s < 85) return "Estabelecido com gargalos de escala";
   return "Maduro, pronto para expansão";
 }
+
+// =====================================================
+// Radar de maturidade por área (pentágono)
+// =====================================================
+function drawRadarMaturidade(
+  doc: jsPDF,
+  areas: { aquisicao?: number; conversao?: number; retencao?: number; operacional?: number; financeiro?: number },
+  x: number,
+  y: number,
+  w: number,
+): number {
+  const h = 220;
+  // Card de fundo
+  doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
+  doc.setDrawColor(C.border[0], C.border[1], C.border[2]);
+  doc.roundedRect(x, y, w, h, 8, 8, "FD");
+
+  // Centro do radar (à esquerda) — sobra espaço para legenda à direita
+  const cx = x + h / 2 + 10;
+  const cy = y + h / 2;
+  const radius = h / 2 - 30;
+
+  const labels = [
+    { key: "aquisicao", label: "Aquisição" },
+    { key: "conversao", label: "Conversão" },
+    { key: "retencao", label: "Retenção" },
+    { key: "operacional", label: "Operacional" },
+    { key: "financeiro", label: "Financeiro" },
+  ] as const;
+  const N = labels.length;
+  // Começa no topo (-π/2)
+  const angle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / N;
+
+  // Grid concêntrico (4 anéis)
+  doc.setDrawColor(C.border[0], C.border[1], C.border[2]);
+  doc.setLineWidth(0.5);
+  for (let ring = 1; ring <= 4; ring++) {
+    const r = (radius * ring) / 4;
+    const pts: [number, number][] = [];
+    for (let i = 0; i < N; i++) {
+      pts.push([cx + r * Math.cos(angle(i)), cy + r * Math.sin(angle(i))]);
+    }
+    for (let i = 0; i < N; i++) {
+      const [x1, y1] = pts[i];
+      const [x2, y2] = pts[(i + 1) % N];
+      doc.line(x1, y1, x2, y2);
+    }
+  }
+  // Spokes
+  for (let i = 0; i < N; i++) {
+    doc.line(cx, cy, cx + radius * Math.cos(angle(i)), cy + radius * Math.sin(angle(i)));
+  }
+
+  // Polígono de dados
+  const values = labels.map((l) => {
+    const v = (areas as Record<string, unknown>)[l.key];
+    return typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 0;
+  });
+  const dataPts: [number, number][] = values.map((v, i) => [
+    cx + (radius * v) / 100 * Math.cos(angle(i)),
+    cy + (radius * v) / 100 * Math.sin(angle(i)),
+  ]);
+
+  // Preenchimento (esmeralda translúcido — simulado com cor mais clara)
+  doc.setFillColor(187, 247, 208); // emerald-200
+  doc.setDrawColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+  doc.setLineWidth(1.5);
+  // jsPDF não tem polygon nativo — usa lines()
+  const polyLines: number[][] = [];
+  for (let i = 0; i < N; i++) {
+    const [px, py] = dataPts[i];
+    const [nx, ny] = dataPts[(i + 1) % N];
+    polyLines.push([nx - px, ny - py]);
+  }
+  doc.lines(polyLines, dataPts[0][0], dataPts[0][1], [1, 1], "FD", true);
+
+  // Pontos nos vértices
+  doc.setFillColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+  for (const [px, py] of dataPts) {
+    doc.circle(px, py, 2.2, "F");
+  }
+
+  // Labels nos vértices
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(C.text[0], C.text[1], C.text[2]);
+  for (let i = 0; i < N; i++) {
+    const a = angle(i);
+    const lx = cx + (radius + 14) * Math.cos(a);
+    const ly = cy + (radius + 14) * Math.sin(a) + 3;
+    let align: "left" | "right" | "center" = "center";
+    const cosA = Math.cos(a);
+    if (cosA > 0.3) align = "left";
+    else if (cosA < -0.3) align = "right";
+    doc.text(labels[i].label, lx, ly, { align });
+  }
+
+  // Legenda à direita com valores
+  const legendX = cx + radius + 70;
+  const legendY = y + 30;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
+  doc.text("SCORES POR ÁREA", legendX, legendY);
+
+  let ly = legendY + 18;
+  for (let i = 0; i < N; i++) {
+    const v = values[i];
+    // Bullet
+    doc.setFillColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+    doc.circle(legendX + 3, ly - 3, 2.5, "F");
+    // Label
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(C.text[0], C.text[1], C.text[2]);
+    doc.text(labels[i].label, legendX + 12, ly);
+    // Valor
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(
+      v >= 70 ? C.success[0] : v >= 40 ? C.warning[0] : C.danger[0],
+      v >= 70 ? C.success[1] : v >= 40 ? C.warning[1] : C.danger[1],
+      v >= 70 ? C.success[2] : v >= 40 ? C.warning[2] : C.danger[2],
+    );
+    doc.text(`${v}`, legendX + 110, ly, { align: "right" });
+    ly += 18;
+  }
+
+  return y + h;
+}
+
 
 // =====================================================
 // SWOT 2x2

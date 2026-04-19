@@ -16,6 +16,14 @@ import {
   TrendingUp,
   XCircle,
 } from 'lucide-react';
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+} from 'recharts';
 
 // ---------- Tipos espelhando o tool schema do process-diagnostico ----------
 interface SwotData {
@@ -67,9 +75,18 @@ interface Risco {
   mitigacao?: string;
 }
 
+interface MaturidadeAreas {
+  aquisicao?: number;
+  conversao?: number;
+  retencao?: number;
+  operacional?: number;
+  financeiro?: number;
+}
+
 export interface DiagnosticoAnalise {
   diagnostico_narrativo?: string;
   classificacao_maturidade?: string;
+  maturidade_areas?: MaturidadeAreas;
   swot?: SwotData;
   gargalos_principais?: Gargalo[];
   recomendacoes?: Recomendacao[];
@@ -391,6 +408,76 @@ function RiscosList({ riscos }: { riscos?: Risco[] }) {
   );
 }
 
+// ---------- Radar de maturidade por área ----------
+function RadarMaturidade({ areas }: { areas?: MaturidadeAreas }) {
+  if (!areas) return null;
+  const data = [
+    { area: 'Aquisição', value: clampPct(areas.aquisicao) },
+    { area: 'Conversão', value: clampPct(areas.conversao) },
+    { area: 'Retenção', value: clampPct(areas.retencao) },
+    { area: 'Operacional', value: clampPct(areas.operacional) },
+    { area: 'Financeiro', value: clampPct(areas.financeiro) },
+  ];
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Maturidade por área
+        </p>
+        <div className="grid gap-4 md:grid-cols-[1fr_220px]">
+          <div className="h-[260px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={data} outerRadius="75%">
+                <PolarGrid stroke="hsl(var(--border))" />
+                <PolarAngleAxis
+                  dataKey="area"
+                  tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                />
+                <PolarRadiusAxis
+                  angle={90}
+                  domain={[0, 100]}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                  tickCount={5}
+                />
+                <Radar
+                  name="Maturidade"
+                  dataKey="value"
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--primary))"
+                  fillOpacity={0.35}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex flex-col justify-center gap-2 text-sm">
+            {data.map((d) => (
+              <div key={d.area} className="flex items-center justify-between gap-3">
+                <span className="text-foreground">{d.area}</span>
+                <span
+                  className={`font-mono font-semibold tabular-nums ${
+                    d.value >= 70
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : d.value >= 40
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-rose-600 dark:text-rose-400'
+                  }`}
+                >
+                  {d.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function clampPct(v: unknown): number {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(100, Math.round(v)));
+}
+
 // ---------- Componente principal ----------
 interface Props {
   resumoExecutivo: string | null;
@@ -403,6 +490,8 @@ export function DiagnosticoDetalhes({ resumoExecutivo, score, analise }: Props) 
   return (
     <div className="space-y-6">
       <ScorePanel score={score} maturidade={a.classificacao_maturidade} />
+
+      <RadarMaturidade areas={a.maturidade_areas} />
 
       {resumoExecutivo && (
         <section>

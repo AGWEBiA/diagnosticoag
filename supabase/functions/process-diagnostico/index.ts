@@ -65,12 +65,21 @@ interface Risco {
   mitigacao: string;
 }
 
+interface MaturidadeAreas {
+  aquisicao: number;
+  conversao: number;
+  retencao: number;
+  operacional: number;
+  financeiro: number;
+}
+
 interface AnaliseEstruturada {
   resumo_executivo: string;
   diagnostico_narrativo: string;
   score: number;
   classificacao_maturidade: string;
   confianca: number;
+  maturidade_areas: MaturidadeAreas;
   swot: {
     forcas: string[];
     fraquezas: string[];
@@ -119,6 +128,20 @@ const TOOL_DEFINITION = {
         type: "number",
         description:
           "Confiança da análise (0-1). Quanto mais respostas qualitativas detalhadas e contexto RAG relevante, maior.",
+      },
+      maturidade_areas: {
+        type: "object",
+        description:
+          "OBRIGATÓRIO: score 0-100 por área de maturidade. Avalie cada área de forma INDEPENDENTE baseado nas respostas concretas do usuário (não copie o score geral). Aquisição: capacidade de gerar leads/tráfego. Conversão: eficiência do funil até a venda. Retenção: capacidade de manter clientes/recorrência. Operacional: processos, time, ferramentas, escalabilidade. Financeiro: margem, fluxo de caixa, previsibilidade.",
+        properties: {
+          aquisicao: { type: "number", description: "0-100" },
+          conversao: { type: "number", description: "0-100" },
+          retencao: { type: "number", description: "0-100" },
+          operacional: { type: "number", description: "0-100" },
+          financeiro: { type: "number", description: "0-100" },
+        },
+        required: ["aquisicao", "conversao", "retencao", "operacional", "financeiro"],
+        additionalProperties: false,
       },
       swot: {
         type: "object",
@@ -316,6 +339,7 @@ const TOOL_DEFINITION = {
       "score",
       "classificacao_maturidade",
       "confianca",
+      "maturidade_areas",
       "swot",
       "gargalos_principais",
       "recomendacoes",
@@ -362,7 +386,86 @@ VOLUME ESPERADO: o JSON final deve ter pelo menos 5000 caracteres de texto útil
 
 QUANTIDADE OBRIGATÓRIA DE RECOMENDAÇÕES: você DEVE gerar entre 8 e 12 recomendações. NUNCA menos de 8. Cobrir múltiplas frentes do negócio (aquisição, conversão, retenção, operação, finanças, produto, time, posicionamento). Se a empresa tiver pouco contexto, gere recomendações de coleta de dados — mas SEMPRE pelo menos 8 itens.
 
+MATURIDADE POR ÁREA: o objeto maturidade_areas é OBRIGATÓRIO. Avalie cada área (aquisicao, conversao, retencao, operacional, financeiro) de forma INDEPENDENTE com score 0-100. NÃO copie o score geral em todas — áreas variam. Use a sugestão âncora fornecida no prompt como ponto de partida, mas ajuste com base no contexto qualitativo (ICP, frustrações, tentativas, recursos). Diferenças de ±15 pontos da âncora são esperadas e desejáveis quando há sinais qualitativos fortes.
+
 Retorne SEMPRE via tool call estruturada.`;
+
+// =====================================================
+// Cálculo determinístico base de maturidade por área (âncora)
+// =====================================================
+function clamp(n: number, min = 0, max = 100): number {
+  return Math.max(min, Math.min(max, Math.round(n)));
+}
+
+function parseNum(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = Number(v.replace(/[^\d,.\-]/g, "").replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function calcMaturidadeBase(respostas: Record<string, unknown>): {
+  aquisicao: number;
+  conversao: number;
+  retencao: number;
+  operacional: number;
+  financeiro: number;
+} {
+  // Heurísticas simples e legíveis. A IA refina depois.
+  const fat = parseNum(respostas.faturamento_mensal) ?? 0;
+  const ticket = parseNum(respostas.ticket_medio) ?? 0;
+  const investMkt = parseNum(respostas.investimento_marketing) ?? 0;
+  const temCrm = String(respostas.usa_crm ?? "").toLowerCase().includes("sim");
+  const temFunil = String(respostas.tem_funil ?? "").toLowerCase().includes("sim");
+  const temTime = parseNum(respostas.tamanho_time) ?? 0;
+  const temRecorrencia = String(respostas.modelo_receita ?? "")
+    .toLowerCase()
+    .match(/recorr|assin|membership/);
+
+  // Aquisição: investimento em marketing + faturamento
+  let aquisicao = 30;
+  if (investMkt > 0) aquisicao += 15;
+  if (investMkt >= 5000) aquisicao += 15;
+  if (fat >= 30000) aquisicao += 10;
+  if (fat >= 100000) aquisicao += 10;
+
+  // Conversão: tem funil/CRM + ticket coerente
+  let conversao = 30;
+  if (temFunil) conversao += 20;
+  if (temCrm) conversao += 15;
+  if (ticket >= 500) conversao += 10;
+  if (ticket >= 2000) conversao += 10;
+
+  // Retenção: modelo de receita + CRM
+  let retencao = 25;
+  if (temRecorrencia) retencao += 30;
+  if (temCrm) retencao += 15;
+  if (fat >= 50000) retencao += 10;
+
+  // Operacional: tamanho do time + ferramentas
+  let operacional = 25;
+  if (temTime >= 1) operacional += 10;
+  if (temTime >= 3) operacional += 15;
+  if (temTime >= 10) operacional += 15;
+  if (temCrm) operacional += 10;
+
+  // Financeiro: faturamento e previsibilidade
+  let financeiro = 25;
+  if (fat >= 10000) financeiro += 10;
+  if (fat >= 50000) financeiro += 15;
+  if (fat >= 200000) financeiro += 15;
+  if (temRecorrencia) financeiro += 10;
+
+  return {
+    aquisicao: clamp(aquisicao),
+    conversao: clamp(conversao),
+    retencao: clamp(retencao),
+    operacional: clamp(operacional),
+    financeiro: clamp(financeiro),
+  };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -446,6 +549,8 @@ Deno.serve(async (req) => {
     const ragContexto = await searchKnowledge(supabaseAdmin, ragQuery);
     const contextoTexto = formatRagContext(ragContexto);
 
+    const maturidadeAncora = calcMaturidadeBase(respostas);
+
     const userPrompt = `# DADOS DO NEGÓCIO
 
 Empresa: ${diag.empresa_nome ?? "não informado"}
@@ -458,6 +563,11 @@ ${JSON.stringify(respostas, null, 2)}
 
 # CONTEXTO DE CONHECIMENTO VERIFICADO (RAG)
 ${contextoTexto}
+
+# ÂNCORA DE MATURIDADE POR ÁREA (calculada deterministicamente a partir das respostas — use como ponto de partida e ajuste com base no contexto qualitativo)
+\`\`\`json
+${JSON.stringify(maturidadeAncora, null, 2)}
+\`\`\`
 
 # TAREFA
 Produza um diagnóstico estratégico PROFUNDO e DETALHADO, no nível de uma consultoria sênior. Conecte explicitamente as respostas qualitativas (ICP, frustração, tentativas falhas, recursos, prazo, concorrência) com as métricas quantitativas (faturamento, ticket, investimento, metas, gargalo). O usuário pagou por este relatório e espera profundidade real — vá fundo em causa-raiz, dê plano de ação executável e use linguagem específica para o caso dele, não conselhos genéricos.`;
@@ -512,12 +622,24 @@ Produza um diagnóstico estratégico PROFUNDO e DETALHADO, no nível de uma cons
       throw e;
     }
 
+    // Sanitiza maturidade_areas: clamp 0-100 + fallback para âncora se ausente.
+    const maturidadeAi = (analise as unknown as { maturidade_areas?: Record<string, unknown> })
+      .maturidade_areas ?? {};
+    const maturidadeFinal = {
+      aquisicao: clamp(parseNum(maturidadeAi.aquisicao) ?? maturidadeAncora.aquisicao),
+      conversao: clamp(parseNum(maturidadeAi.conversao) ?? maturidadeAncora.conversao),
+      retencao: clamp(parseNum(maturidadeAi.retencao) ?? maturidadeAncora.retencao),
+      operacional: clamp(parseNum(maturidadeAi.operacional) ?? maturidadeAncora.operacional),
+      financeiro: clamp(parseNum(maturidadeAi.financeiro) ?? maturidadeAncora.financeiro),
+    };
+
     // Persistimos a análise completa em recomendacoes (jsonb) para preservar
     // toda a estrutura sem precisar de migração de schema. O resumo_executivo
     // continua como campo dedicado.
     const recomendacoesPayload = {
       diagnostico_narrativo: analise.diagnostico_narrativo,
       classificacao_maturidade: analise.classificacao_maturidade,
+      maturidade_areas: maturidadeFinal,
       swot: analise.swot,
       gargalos_principais: analise.gargalos_principais,
       recomendacoes: analise.recomendacoes,
