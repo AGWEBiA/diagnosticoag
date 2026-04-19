@@ -869,7 +869,7 @@ function drawSwot(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   const gap = 12;
   const cellW = (width - gap) / 2;
@@ -974,7 +974,7 @@ function drawGargalo(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   // Mede altura
   doc.setFontSize(10);
@@ -1070,7 +1070,7 @@ function drawRecomendacao(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   const accent =
     r.prioridade === "alta" ? C.danger : r.prioridade === "media" ? C.warning : C.info;
@@ -1245,7 +1245,7 @@ function drawRoadmap(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   const horizontes: Array<{ label: string; marcos: Marco[]; color: [number, number, number] }> = [
     { label: "90 DIAS — QUICK WINS", marcos: roadmap.dias_90 ?? [], color: C.success },
@@ -1328,7 +1328,7 @@ function drawKpisTable(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   // Colunas: Nome | Atual | Meta | Como medir
   const colW = [width * 0.28, width * 0.18, width * 0.18, width * 0.36];
@@ -1410,7 +1410,7 @@ function drawRisco(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   doc.setFontSize(10);
   const tituloLines = doc.splitTextToSize(safe(r.titulo, "—"), width - 32) as string[];
