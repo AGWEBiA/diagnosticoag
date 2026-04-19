@@ -175,17 +175,21 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   doc.addPage();
   let y = margin + 20;
 
-  // Quebra de página apenas se faltar MUITO espaço (evita páginas semi-vazias).
-  // Para cards grandes, limita o "needed" a no máximo metade da página útil:
-  // se o card é maior que isso, é melhor começar na página atual e deixar o
-  // jsPDF clipar/sobrepor naturalmente do que desperdiçar uma página inteira.
+  // Quebra de página inteligente:
+  // - Se o conteúdo cabe na página atual, desenha aqui.
+  // - Se NÃO cabe na página atual MAS cabe inteiro em uma página nova, quebra.
+  // - Se for maior que uma página inteira (raro: card gigante), começa na atual
+  //   e deixa o desenho fluir (single-card overflow é melhor que página vazia).
   const usableH = pageH - margin - 30 - (margin + 20);
   const ensureSpace = (needed: number) => {
-    const cap = Math.min(needed, usableH * 0.5);
-    if (y + cap > pageH - margin - 30) {
+    const remaining = pageH - margin - 30 - y;
+    if (needed <= remaining) return; // cabe aqui
+    if (needed <= usableH) {
+      // não cabe aqui mas cabe em página nova — quebra
       doc.addPage();
       y = margin + 20;
     }
+    // se needed > usableH, deixa fluir na atual (card gigante)
   };
 
   // Coleta entradas do sumário: { label, page, y } — atualizado em cada sectionTitle
