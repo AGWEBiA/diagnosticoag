@@ -339,6 +339,7 @@ const TOOL_DEFINITION = {
       "score",
       "classificacao_maturidade",
       "confianca",
+      "maturidade_areas",
       "swot",
       "gargalos_principais",
       "recomendacoes",
