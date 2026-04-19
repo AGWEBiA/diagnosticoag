@@ -309,7 +309,7 @@ const DiagnosticosAdmin = () => {
       </div>
 
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-5xl">
           <DialogHeader>
             <DialogTitle>
               {viewing?.empresa_nome || 'Diagnóstico'}{' '}
@@ -340,46 +340,19 @@ const DiagnosticosAdmin = () => {
               Gerar PDF
             </Button>
           </div>
-          <Tabs defaultValue="resumo" className="w-full">
+          <Tabs defaultValue="analise" className="w-full">
             <TabsList>
-              <TabsTrigger value="resumo">Resumo</TabsTrigger>
+              <TabsTrigger value="analise">Análise completa</TabsTrigger>
               <TabsTrigger value="chat">Chat IA</TabsTrigger>
-              <TabsTrigger value="raw">Respostas</TabsTrigger>
+              <TabsTrigger value="raw">Respostas brutas</TabsTrigger>
             </TabsList>
-            <TabsContent value="resumo" className="max-h-[70vh] space-y-4 overflow-auto">
-              {viewing?.resumo_executivo ? (
-                <section>
-                  <h3 className="mb-1 text-sm font-semibold">Resumo executivo</h3>
-                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                    {viewing.resumo_executivo}
-                  </p>
-                </section>
-              ) : (
-                <p className="text-sm text-muted-foreground">Sem resumo executivo gerado ainda.</p>
-              )}
-              {recos.length > 0 && (
-                <section>
-                  <h3 className="mb-2 text-sm font-semibold">Recomendações</h3>
-                  <ol className="space-y-2">
-                    {recos.map((r, i) => (
-                      <li key={i} className="rounded-md border p-2 text-sm">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium">
-                            {r.prioridade ?? i + 1}. {r.titulo ?? '(sem título)'}
-                          </span>
-                          {r.impacto && (
-                            <Badge variant="outline" className="text-xs">
-                              {r.impacto}
-                            </Badge>
-                          )}
-                        </div>
-                        {r.descricao && (
-                          <p className="mt-1 text-xs text-muted-foreground">{r.descricao}</p>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </section>
+            <TabsContent value="analise" className="max-h-[70vh] overflow-auto pr-2">
+              {viewing && (
+                <DiagnosticoDetalhes
+                  resumoExecutivo={viewing.resumo_executivo}
+                  score={viewing.score}
+                  analise={analise}
+                />
               )}
             </TabsContent>
             <TabsContent value="chat">
