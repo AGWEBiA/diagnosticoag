@@ -171,8 +171,10 @@ const TOOL_DEFINITION = {
       },
       recomendacoes: {
         type: "array",
+        minItems: 8,
+        maxItems: 12,
         description:
-          "8 a 12 recomendações acionáveis, ordenadas por prioridade. Cada uma deve ser executável (não conselho genérico).",
+          "OBRIGATÓRIO: entre 8 e 12 recomendações acionáveis (NUNCA menos de 8), ordenadas por prioridade. Cada uma deve ser executável e específica para este caso (não conselho genérico). Cobrir múltiplas frentes: aquisição, conversão, retenção, operacional, financeiro, produto, time.",
         items: {
           type: "object",
           properties: {
@@ -357,6 +359,8 @@ CONFIANÇA (0-1):
 - <0.5: dados insuficientes — sinalize o que falta no resumo.
 
 VOLUME ESPERADO: o JSON final deve ter pelo menos 5000 caracteres de texto útil. Recomendações devem ter 3-6 passos cada.
+
+QUANTIDADE OBRIGATÓRIA DE RECOMENDAÇÕES: você DEVE gerar entre 8 e 12 recomendações. NUNCA menos de 8. Cobrir múltiplas frentes do negócio (aquisição, conversão, retenção, operação, finanças, produto, time, posicionamento). Se a empresa tiver pouco contexto, gere recomendações de coleta de dados — mas SEMPRE pelo menos 8 itens.
 
 Retorne SEMPRE via tool call estruturada.`;
 
