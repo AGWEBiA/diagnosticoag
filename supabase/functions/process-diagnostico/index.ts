@@ -113,8 +113,9 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const diagnosticoId = body?.diagnostico_id as string | undefined;
-    if (!diagnosticoId) {
-      return new Response(JSON.stringify({ error: "diagnostico_id required" }), {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!diagnosticoId || !UUID_RE.test(diagnosticoId)) {
+      return new Response(JSON.stringify({ error: "diagnostico_id inválido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -287,7 +288,7 @@ Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${di
   } catch (err) {
     console.error("process-diagnostico error:", err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "Internal error" }),
+      JSON.stringify({ error: "Erro interno do servidor" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
