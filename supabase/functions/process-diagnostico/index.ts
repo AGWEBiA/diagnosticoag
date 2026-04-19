@@ -622,12 +622,24 @@ Produza um diagnóstico estratégico PROFUNDO e DETALHADO, no nível de uma cons
       throw e;
     }
 
+    // Sanitiza maturidade_areas: clamp 0-100 + fallback para âncora se ausente.
+    const maturidadeAi = (analise as unknown as { maturidade_areas?: Record<string, unknown> })
+      .maturidade_areas ?? {};
+    const maturidadeFinal = {
+      aquisicao: clamp(parseNum(maturidadeAi.aquisicao) ?? maturidadeAncora.aquisicao),
+      conversao: clamp(parseNum(maturidadeAi.conversao) ?? maturidadeAncora.conversao),
+      retencao: clamp(parseNum(maturidadeAi.retencao) ?? maturidadeAncora.retencao),
+      operacional: clamp(parseNum(maturidadeAi.operacional) ?? maturidadeAncora.operacional),
+      financeiro: clamp(parseNum(maturidadeAi.financeiro) ?? maturidadeAncora.financeiro),
+    };
+
     // Persistimos a análise completa em recomendacoes (jsonb) para preservar
     // toda a estrutura sem precisar de migração de schema. O resumo_executivo
     // continua como campo dedicado.
     const recomendacoesPayload = {
       diagnostico_narrativo: analise.diagnostico_narrativo,
       classificacao_maturidade: analise.classificacao_maturidade,
+      maturidade_areas: maturidadeFinal,
       swot: analise.swot,
       gargalos_principais: analise.gargalos_principais,
       recomendacoes: analise.recomendacoes,
