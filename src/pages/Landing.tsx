@@ -147,17 +147,39 @@ const Landing = () => {
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden border-b">
-          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-background to-background" />
+          {/* Background com gradient + grid pattern sutil */}
+          <div className="absolute inset-0 -z-10 bg-gradient-subtle" />
+          <div
+            className="absolute inset-0 -z-10 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                'linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)',
+              backgroundSize: '64px 64px',
+              maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 80%)',
+            }}
+          />
+          {/* Glow orbs decorativos */}
+          <div className="pointer-events-none absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+
           <div className="container mx-auto px-4 py-20 md:py-28">
             <div className="mx-auto max-w-4xl text-center">
-              <Badge variant="secondary" className="mb-6">
-                <Sparkles className="mr-1 h-3 w-3" /> Análise estratégica com IA Proprietária + Equipe de Especialistas
+              <Badge
+                variant="secondary"
+                className="mb-6 border border-primary/20 bg-primary/5 px-4 py-1.5 text-primary shadow-soft backdrop-blur"
+              >
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                Análise estratégica com IA Proprietária + Equipe de Especialistas
               </Badge>
-              <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-                Descubra os <span className="text-primary">GARGALOS REAIS</span> do seu negócio digital
+              <h1 className="text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
+                Descubra os{' '}
+                <span className="bg-gradient-to-br from-primary to-primary-glow bg-clip-text text-transparent">
+                  GARGALOS REAIS
+                </span>{' '}
+                do seu negócio digital
               </h1>
-              <p className="mt-4 text-xl font-medium text-muted-foreground md:text-2xl">
-                E saiba <span className="text-foreground">EXATAMENTE</span> o que fazer para crescer
+              <p className="mt-6 text-xl font-medium text-muted-foreground md:text-2xl">
+                E saiba <span className="font-semibold text-foreground">EXATAMENTE</span> o que fazer para crescer
               </p>
               <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
                 Análise profunda com IA Proprietária + Equipe de Especialistas + estratégia personalizada baseada em{' '}
@@ -165,17 +187,34 @@ const Landing = () => {
                 <strong className="text-foreground">+R$ 40 milhões</strong> em resultados digitais.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button asChild size="lg" className="w-full sm:w-auto">
-                  <a href="#produtos">Quero descobrir meus gargalos <ArrowRight className="ml-2 h-4 w-4" /></a>
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full bg-gradient-primary shadow-glow transition-smooth hover:shadow-elevated sm:w-auto"
+                >
+                  <a href="#produtos">
+                    Quero descobrir meus gargalos <ArrowRight className="ml-2 h-4 w-4" />
+                  </a>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="w-full border-primary/20 backdrop-blur transition-smooth hover:bg-primary/5 sm:w-auto"
+                >
                   <Link to="/como-funciona">Como funciona</Link>
                 </Button>
               </div>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Garantia de 7 dias</span>
-                <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> Entrega em até 5 dias</span>
-                <span className="inline-flex items-center gap-1.5"><Award className="h-4 w-4 text-primary" /> +R$ 40 milhões gerenciados</span>
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-x-3 gap-y-3 text-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-muted-foreground shadow-soft backdrop-blur">
+                  <ShieldCheck className="h-4 w-4 text-primary" /> Garantia de 7 dias
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-muted-foreground shadow-soft backdrop-blur">
+                  <Clock className="h-4 w-4 text-primary" /> Entrega em até 5 dias
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-muted-foreground shadow-soft backdrop-blur">
+                  <Award className="h-4 w-4 text-primary" /> +R$ 40 milhões gerenciados
+                </span>
               </div>
             </div>
           </div>
