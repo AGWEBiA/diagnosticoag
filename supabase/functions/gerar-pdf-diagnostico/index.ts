@@ -523,6 +523,126 @@ function drawCover(
 }
 
 // =====================================================
+// SUMÁRIO clicável (página 2)
+// =====================================================
+function drawSumario(
+  doc: jsPDF,
+  pageW: number,
+  pageH: number,
+  margin: number,
+  contentW: number,
+  toc: Array<{ label: string; page: number; y: number }>,
+  empresa: string,
+) {
+  doc.setCharSpace(0);
+
+  // Fundo branco padrão (já é default)
+  // Top accent verde
+  doc.setFillColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+  doc.rect(0, 0, pageW, 4, "F");
+
+  let y = margin + 40;
+
+  // Eyebrow
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+  doc.text("ÍNDICE", margin, y);
+  y += 14;
+
+  // Título
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(28);
+  doc.setTextColor(C.text[0], C.text[1], C.text[2]);
+  doc.text("Sumário", margin, y + 18);
+  y += 32;
+
+  // Linha decorativa verde
+  doc.setDrawColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+  doc.setLineWidth(2);
+  doc.line(margin, y, margin + 48, y);
+  y += 28;
+
+  // Subtítulo descritivo
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
+  doc.text(
+    `Navegue pelas seções deste relatório de ${empresa}. Clique para ir direto.`,
+    margin,
+    y,
+  );
+  y += 28;
+
+  // Lista de entradas
+  const rowH = 28;
+  toc.forEach((entry, idx) => {
+    const rowY = y;
+
+    // Linha de fundo zebra
+    if (idx % 2 === 0) {
+      doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
+      doc.roundedRect(margin, rowY - 16, contentW, rowH, 4, 4, "F");
+    }
+
+    // Número
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+    const num = String(idx + 1).padStart(2, "0");
+    doc.text(num, margin + 8, rowY);
+
+    // Label
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11.5);
+    doc.setTextColor(C.text[0], C.text[1], C.text[2]);
+    doc.text(entry.label, margin + 38, rowY);
+
+    // Dots de preenchimento (visual)
+    const labelW = doc.getTextWidth(entry.label);
+    const dotsStart = margin + 38 + labelW + 8;
+    const dotsEnd = margin + contentW - 36;
+    if (dotsEnd > dotsStart) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(C.textSubtle[0], C.textSubtle[1], C.textSubtle[2]);
+      const dotW = doc.getTextWidth(".");
+      const dotCount = Math.floor((dotsEnd - dotsStart) / (dotW + 1));
+      let dotStr = "";
+      for (let i = 0; i < dotCount; i++) dotStr += " .";
+      doc.text(dotStr, dotsStart, rowY);
+    }
+
+    // Página
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+    doc.text(String(entry.page), margin + contentW - 8, rowY, { align: "right" });
+
+    // Link clicável cobrindo a linha inteira
+    doc.link(margin, rowY - 16, contentW, rowH, {
+      pageNumber: entry.page,
+      top: Math.max(entry.y - 30, 0),
+    });
+
+    y += rowH;
+
+    // Quebra automática se passar do limite (improvável mas seguro)
+    if (y > pageH - margin - 80) return;
+  });
+
+  // Rodapé do sumário
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8.5);
+  doc.setTextColor(C.textSubtle[0], C.textSubtle[1], C.textSubtle[2]);
+  doc.text(
+    "Dica: clique em qualquer item do sumário para saltar diretamente para a seção correspondente.",
+    margin,
+    pageH - margin - 16,
+  );
+}
+
+// =====================================================
 // HEADER / FOOTER
 // =====================================================
 function drawHeader(doc: jsPDF, pageW: number, margin: number, empresa: string) {
