@@ -86,18 +86,24 @@ const DiagnosticosAdmin = () => {
       const url = (data as { signed_url?: string } | null)?.signed_url;
       const versao = (data as { versao?: number } | null)?.versao;
       if (!url) throw new Error('Sem URL de download');
-      // Dispara download forçado (evita popup blocker do navegador)
+
+      // Baixa via fetch+blob para evitar bloqueio de extensões (ERR_BLOCKED_BY_CLIENT)
+      // ao acessar *.supabase.co diretamente.
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Falha no download (${resp.status})`);
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = blobUrl;
       a.download = `diagnostico-${viewing.id}-v${versao ?? 1}.pdf`;
-      a.rel = 'noopener noreferrer';
-      a.target = '_blank';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+
       toast({
         title: 'PDF gerado',
-        description: `Versão ${versao ?? ''} — o download deve iniciar automaticamente.`,
+        description: `Versão ${versao ?? ''} baixada com sucesso.`,
       });
     } catch (e) {
       toast({
