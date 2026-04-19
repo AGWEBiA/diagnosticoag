@@ -922,7 +922,7 @@ function drawSwot(
   const rowBotH = Math.max(cellHeight(cells[2].items), cellHeight(cells[3].items));
   const totalH = rowTopH + rowBotH + gap;
 
-  ensureSpace(totalH + 10);
+  y = ensureSpace(totalH + 10);
 
   const drawCell = (
     cx: number,
@@ -985,7 +985,7 @@ function drawGargalo(
   const h =
     36 + descLines.length * 12 + 18 + causaLines.length * 12 + 18 + impLines.length * 12 + 16;
 
-  ensureSpace(h + 8);
+  y = ensureSpace(h + 8);
 
   // Card background
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
@@ -1101,7 +1101,7 @@ function drawRecomendacao(
     metaH +
     32;
 
-  ensureSpace(h + 10);
+  y = ensureSpace(h + 10);
 
   // Card
   doc.setFillColor(255, 255, 255);
@@ -1336,7 +1336,7 @@ function drawKpisTable(
   const headerH = 26;
   const rowMinH = 30;
 
-  ensureSpace(headerH + rowMinH * 2 + 20);
+  y = ensureSpace(headerH + rowMinH * 2 + 20);
 
   // Header
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
@@ -1419,7 +1419,7 @@ function drawRisco(
   const mitLines = doc.splitTextToSize(safe(r.mitigacao, "—"), width - 32) as string[];
   const h = tituloLines.length * 13 + 18 + mitLines.length * 11 + 28;
 
-  ensureSpace(h + 4);
+  y = ensureSpace(h + 4);
 
   // Card
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
