@@ -300,6 +300,66 @@ const ETAPA_OUTRO: Etapa = {
   ],
 };
 
+// --- ETAPA 6: APROFUNDAMENTO (obrigatória, alimenta a IA com contexto qualitativo) ---
+
+export const ETAPA_APROFUNDAMENTO: Etapa = {
+  id: 'aprofundamento',
+  titulo: 'Aprofundamento estratégico',
+  descricao:
+    'Estas respostas são o que diferencia um diagnóstico genérico de uma análise realmente estratégica. Seja específico — quanto mais detalhe, mais profunda será a análise da IA.',
+  perguntas: [
+    {
+      id: 'icp_cliente_ideal',
+      label: '🎯 Quem é seu cliente ideal (ICP)?',
+      tipo: 'textarea',
+      obrigatoria: true,
+      placeholder:
+        'Descreva: perfil demográfico, momento de vida/negócio, dores principais, o que ele já tentou antes de te procurar, faixa de renda/faturamento, canais que frequenta...',
+      ajuda: 'Quanto mais específico, melhor. Evite "qualquer pessoa interessada".',
+    },
+    {
+      id: 'maior_frustracao_atual',
+      label: '😤 Qual é sua maior frustração hoje no negócio?',
+      tipo: 'textarea',
+      obrigatoria: true,
+      placeholder:
+        'O que mais te tira o sono? Onde você sente que está "batendo a cabeça na parede"? Por que isso ainda não foi resolvido?',
+    },
+    {
+      id: 'tentativas_falhas',
+      label: '❌ O que você já tentou e NÃO funcionou nos últimos 12 meses?',
+      tipo: 'textarea',
+      obrigatoria: true,
+      placeholder:
+        'Liste estratégias, ferramentas, contratações, campanhas ou investimentos que tentou e não deram o resultado esperado. Por que você acha que falharam?',
+    },
+    {
+      id: 'recursos_disponiveis',
+      label: '🛠️ Quais recursos você tem disponíveis hoje?',
+      tipo: 'textarea',
+      obrigatoria: true,
+      placeholder:
+        'Tempo semanal dedicado, orçamento disponível para investir nos próximos 90 dias, equipe (interna/freelancers), ferramentas já contratadas, ativos digitais (lista de email, audiência, autoridade)...',
+    },
+    {
+      id: 'prazo_critico',
+      label: '⏰ Existe algum prazo crítico ou marco importante?',
+      tipo: 'textarea',
+      obrigatoria: true,
+      placeholder:
+        'Ex: lançamento de produto em X meses, fim do contrato com cliente âncora, necessidade de bater meta antes de Y data, evento sazonal, runway de capital...',
+    },
+    {
+      id: 'concorrencia_percebida',
+      label: '⚔️ Como você percebe sua concorrência?',
+      tipo: 'textarea',
+      obrigatoria: true,
+      placeholder:
+        'Quem são seus 2-3 principais concorrentes? O que eles fazem melhor que você? O que você faz melhor? Por que um cliente escolheria você?',
+    },
+  ],
+};
+
 export function getEtapasPorSegmento(segmento: string | undefined): Etapa[] {
   const especifica =
     segmento === 'infoprodutor'
@@ -307,7 +367,14 @@ export function getEtapasPorSegmento(segmento: string | undefined): Etapa[] {
       : segmento === 'consultor_marketing'
         ? ETAPA_CONSULTOR
         : ETAPA_OUTRO;
-  return [ETAPA_NICHO, ETAPA_UNIVERSAIS, ETAPA_METAS, ETAPA_ESTRATEGIAS, especifica];
+  return [
+    ETAPA_NICHO,
+    ETAPA_UNIVERSAIS,
+    ETAPA_METAS,
+    ETAPA_ESTRATEGIAS,
+    especifica,
+    ETAPA_APROFUNDAMENTO,
+  ];
 }
 
-export const TOTAL_ETAPAS = 5;
+export const TOTAL_ETAPAS = 6;

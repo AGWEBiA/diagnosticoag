@@ -138,6 +138,8 @@ const Diagnostico = () => {
       setRespostas({});
       setEtapaIdx(0);
       setAguardandoIA(diagId);
+      // Análise profunda (Gemini Pro + reasoning high) leva 25-50s.
+      // Realtime escuta UPDATE; este timeout é só safety net se realtime falhar.
       setTimeout(() => {
         setAguardandoIA((cur) => {
           if (cur === diagId) {
@@ -146,7 +148,7 @@ const Diagnostico = () => {
           }
           return cur;
         });
-      }, 8000);
+      }, 60000);
     }
   };
 
@@ -186,11 +188,15 @@ const Diagnostico = () => {
 
   if (aguardandoIA) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <h2 className="text-lg font-semibold">Processando seu diagnóstico…</h2>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          A IA está analisando suas respostas. Você será redirecionado automaticamente assim que terminar.
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <h2 className="text-xl font-semibold">Gerando sua análise estratégica…</h2>
+        <p className="text-sm text-muted-foreground max-w-md">
+          Nossa IA está cruzando suas respostas com a base de conhecimento para produzir um diagnóstico profundo:
+          SWOT, gargalos com causa-raiz, roadmap 90/180/365 dias e recomendações acionáveis.
+        </p>
+        <p className="text-xs text-muted-foreground/70">
+          Isso pode levar até 1 minuto. Você será redirecionado automaticamente.
         </p>
       </div>
     );
