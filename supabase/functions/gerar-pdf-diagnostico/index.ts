@@ -727,7 +727,7 @@ function paragraph(
   y: number,
   width: number,
   opts: { size?: number; bold?: boolean; color?: [number, number, number]; lineHeight?: number },
-  ensureSpace?: (n: number) => void,
+  ensureSpace?: (n: number) => number,
 ): number {
   const size = opts.size ?? 10;
   const lineHeight = opts.lineHeight ?? size + 3;
@@ -735,13 +735,12 @@ function paragraph(
   doc.setFont("helvetica", opts.bold ? "bold" : "normal");
   doc.setFontSize(size);
   doc.setTextColor(color[0], color[1], color[2]);
-  // Suporta múltiplos parágrafos separados por \n\n
   const blocks = text.split(/\n\n+/);
   let yy = y;
   blocks.forEach((block, idx) => {
     const lines = doc.splitTextToSize(block.trim(), width) as string[];
     for (const line of lines) {
-      if (ensureSpace) ensureSpace(lineHeight);
+      if (ensureSpace) yy = ensureSpace(lineHeight);
       doc.text(line, x, yy);
       yy += lineHeight;
     }
