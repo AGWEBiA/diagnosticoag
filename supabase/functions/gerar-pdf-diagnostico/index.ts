@@ -1362,7 +1362,7 @@ function drawKpisTable(
     const lineCount = Math.max(nomeLines.length, atualLines.length, metaLines.length, medirLines.length);
     const rowH = Math.max(rowMinH, lineCount * 11 + 12);
 
-    ensureSpace(rowH + 4);
+    yy = ensureSpace(rowH + 4);
 
     // Zebra
     if (idx % 2 === 0) {
