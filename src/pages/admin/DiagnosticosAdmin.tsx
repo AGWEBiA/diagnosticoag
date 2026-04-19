@@ -84,11 +84,20 @@ const DiagnosticosAdmin = () => {
       });
       if (error) throw error;
       const url = (data as { signed_url?: string } | null)?.signed_url;
+      const versao = (data as { versao?: number } | null)?.versao;
       if (!url) throw new Error('Sem URL de download');
-      window.open(url, '_blank', 'noopener,noreferrer');
+      // Dispara download forçado (evita popup blocker do navegador)
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `diagnostico-${viewing.id}-v${versao ?? 1}.pdf`;
+      a.rel = 'noopener noreferrer';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       toast({
         title: 'PDF gerado',
-        description: `Versão ${(data as { versao?: number }).versao ?? ''} pronta para download.`,
+        description: `Versão ${versao ?? ''} — o download deve iniciar automaticamente.`,
       });
     } catch (e) {
       toast({
