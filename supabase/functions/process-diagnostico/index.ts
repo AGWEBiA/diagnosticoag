@@ -386,7 +386,86 @@ VOLUME ESPERADO: o JSON final deve ter pelo menos 5000 caracteres de texto útil
 
 QUANTIDADE OBRIGATÓRIA DE RECOMENDAÇÕES: você DEVE gerar entre 8 e 12 recomendações. NUNCA menos de 8. Cobrir múltiplas frentes do negócio (aquisição, conversão, retenção, operação, finanças, produto, time, posicionamento). Se a empresa tiver pouco contexto, gere recomendações de coleta de dados — mas SEMPRE pelo menos 8 itens.
 
+MATURIDADE POR ÁREA: o objeto maturidade_areas é OBRIGATÓRIO. Avalie cada área (aquisicao, conversao, retencao, operacional, financeiro) de forma INDEPENDENTE com score 0-100. NÃO copie o score geral em todas — áreas variam. Use a sugestão âncora fornecida no prompt como ponto de partida, mas ajuste com base no contexto qualitativo (ICP, frustrações, tentativas, recursos). Diferenças de ±15 pontos da âncora são esperadas e desejáveis quando há sinais qualitativos fortes.
+
 Retorne SEMPRE via tool call estruturada.`;
+
+// =====================================================
+// Cálculo determinístico base de maturidade por área (âncora)
+// =====================================================
+function clamp(n: number, min = 0, max = 100): number {
+  return Math.max(min, Math.min(max, Math.round(n)));
+}
+
+function parseNum(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = Number(v.replace(/[^\d,.\-]/g, "").replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function calcMaturidadeBase(respostas: Record<string, unknown>): {
+  aquisicao: number;
+  conversao: number;
+  retencao: number;
+  operacional: number;
+  financeiro: number;
+} {
+  // Heurísticas simples e legíveis. A IA refina depois.
+  const fat = parseNum(respostas.faturamento_mensal) ?? 0;
+  const ticket = parseNum(respostas.ticket_medio) ?? 0;
+  const investMkt = parseNum(respostas.investimento_marketing) ?? 0;
+  const temCrm = String(respostas.usa_crm ?? "").toLowerCase().includes("sim");
+  const temFunil = String(respostas.tem_funil ?? "").toLowerCase().includes("sim");
+  const temTime = parseNum(respostas.tamanho_time) ?? 0;
+  const temRecorrencia = String(respostas.modelo_receita ?? "")
+    .toLowerCase()
+    .match(/recorr|assin|membership/);
+
+  // Aquisição: investimento em marketing + faturamento
+  let aquisicao = 30;
+  if (investMkt > 0) aquisicao += 15;
+  if (investMkt >= 5000) aquisicao += 15;
+  if (fat >= 30000) aquisicao += 10;
+  if (fat >= 100000) aquisicao += 10;
+
+  // Conversão: tem funil/CRM + ticket coerente
+  let conversao = 30;
+  if (temFunil) conversao += 20;
+  if (temCrm) conversao += 15;
+  if (ticket >= 500) conversao += 10;
+  if (ticket >= 2000) conversao += 10;
+
+  // Retenção: modelo de receita + CRM
+  let retencao = 25;
+  if (temRecorrencia) retencao += 30;
+  if (temCrm) retencao += 15;
+  if (fat >= 50000) retencao += 10;
+
+  // Operacional: tamanho do time + ferramentas
+  let operacional = 25;
+  if (temTime >= 1) operacional += 10;
+  if (temTime >= 3) operacional += 15;
+  if (temTime >= 10) operacional += 15;
+  if (temCrm) operacional += 10;
+
+  // Financeiro: faturamento e previsibilidade
+  let financeiro = 25;
+  if (fat >= 10000) financeiro += 10;
+  if (fat >= 50000) financeiro += 15;
+  if (fat >= 200000) financeiro += 15;
+  if (temRecorrencia) financeiro += 10;
+
+  return {
+    aquisicao: clamp(aquisicao),
+    conversao: clamp(conversao),
+    retencao: clamp(retencao),
+    operacional: clamp(operacional),
+    financeiro: clamp(financeiro),
+  };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
