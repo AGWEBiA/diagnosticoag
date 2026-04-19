@@ -95,7 +95,7 @@ const Landing = () => {
         <title>Diagnóstico de Negócios Digitais | Anderson Gomes</title>
         <meta
           name="description"
-          content="Descubra os GARGALOS REAIS do seu negócio digital e saiba EXATAMENTE o que fazer para crescer. Análise com IA Enterprise-Grade + 10+ anos gerenciando +R$ 40 milhões em resultados."
+          content="Descubra os GARGALOS REAIS do seu negócio digital e saiba EXATAMENTE o que fazer para crescer. Análise com IA Proprietária + Equipe de Especialistas + 10+ anos gerenciando +R$ 40 milhões em resultados."
         />
         <link rel="canonical" href={`${window.location.origin}/`} />
         <script type="application/ld+json">
@@ -151,7 +151,7 @@ const Landing = () => {
           <div className="container mx-auto px-4 py-20 md:py-28">
             <div className="mx-auto max-w-4xl text-center">
               <Badge variant="secondary" className="mb-6">
-                <Sparkles className="mr-1 h-3 w-3" /> Análise estratégica com IA Enterprise-Grade
+                <Sparkles className="mr-1 h-3 w-3" /> Análise estratégica com IA Proprietária + Equipe de Especialistas
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
                 Descubra os <span className="text-primary">GARGALOS REAIS</span> do seu negócio digital
@@ -160,7 +160,7 @@ const Landing = () => {
                 E saiba <span className="text-foreground">EXATAMENTE</span> o que fazer para crescer
               </p>
               <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
-                Análise profunda com IA Enterprise-Grade + estratégia personalizada baseada em{' '}
+                Análise profunda com IA Proprietária + Equipe de Especialistas + estratégia personalizada baseada em{' '}
                 <strong className="text-foreground">10+ anos</strong> de experiência gerenciando{' '}
                 <strong className="text-foreground">+R$ 40 milhões</strong> em resultados digitais.
               </p>
@@ -219,7 +219,7 @@ const Landing = () => {
                 </p>
                 <p>
                   Por isso criei o <strong className="text-foreground">Diagnóstico de Negócios Digitais</strong>:
-                  análise profunda e personalizada do seu negócio com IA Enterprise-Grade, conhecimento de 10+
+                  análise profunda e personalizada do seu negócio com IA Proprietária + Equipe de Especialistas, conhecimento de 10+
                   anos no mercado, metodologia testada com centenas de clientes e recomendações acionáveis (não teóricas).
                 </p>
                 <p className="text-foreground">
@@ -261,7 +261,7 @@ const Landing = () => {
                   <p className="mb-3 text-sm font-semibold">📋 O que você recebe:</p>
                   <ul className="space-y-2.5 text-sm">
                     {[
-                      'Análise profunda com IA Enterprise-Grade',
+                      'Análise profunda com IA Proprietária + Equipe de Especialistas',
                       'Avaliação completa dos 5 pilares do negócio',
                       'Relatório em PDF de 15+ páginas (design profissional)',
                       'Score de saúde do negócio (0–100)',
@@ -378,7 +378,7 @@ const Landing = () => {
                   </thead>
                   <tbody>
                     {[
-                      { f: 'Análise com IA Enterprise-Grade', r: true, c: true },
+                      { f: 'Análise com IA Proprietária + Equipe de Especialistas', r: true, c: true },
                       { f: 'Relatório com 15+ páginas em PDF', r: true, c: true },
                       { f: 'Score de saúde do negócio', r: true, c: true },
                       { f: 'Plano de ação 30/90/365 dias', r: true, c: true },
