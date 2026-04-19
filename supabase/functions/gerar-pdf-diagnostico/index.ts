@@ -356,6 +356,10 @@ function drawCover(
   pageH: number,
   diag: DiagDataPdf,
 ) {
+  // Reset character spacing logo no início da capa para garantir que
+  // chamadas anteriores não influenciem o kerning do título.
+  doc.setCharSpace(0);
+
   // Fundo escuro
   doc.setFillColor(C.darkBg[0], C.darkBg[1], C.darkBg[2]);
   doc.rect(0, 0, pageW, pageH, "F");
