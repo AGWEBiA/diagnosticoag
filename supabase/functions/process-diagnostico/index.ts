@@ -288,7 +288,7 @@ Gere um diagnóstico estratégico estruturado para este negócio (segmento: ${di
   } catch (err) {
     console.error("process-diagnostico error:", err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "Internal error" }),
+      JSON.stringify({ error: "Erro interno do servidor" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }

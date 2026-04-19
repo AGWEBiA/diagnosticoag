@@ -332,7 +332,7 @@ ${ragBlock}`;
   } catch (e) {
     console.error("chat-diagnostico: unexpected", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Erro inesperado" }),
+      JSON.stringify({ error: "Erro interno do servidor" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
