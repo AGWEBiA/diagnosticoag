@@ -75,9 +75,18 @@ interface Risco {
   mitigacao?: string;
 }
 
+interface MaturidadeAreas {
+  aquisicao?: number;
+  conversao?: number;
+  retencao?: number;
+  operacional?: number;
+  financeiro?: number;
+}
+
 export interface DiagnosticoAnalise {
   diagnostico_narrativo?: string;
   classificacao_maturidade?: string;
+  maturidade_areas?: MaturidadeAreas;
   swot?: SwotData;
   gargalos_principais?: Gargalo[];
   recomendacoes?: Recomendacao[];
