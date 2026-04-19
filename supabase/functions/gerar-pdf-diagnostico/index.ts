@@ -170,8 +170,14 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   doc.addPage();
   let y = margin + 20;
 
+  // Quebra de página apenas se faltar MUITO espaço (evita páginas semi-vazias).
+  // Para cards grandes, limita o "needed" a no máximo metade da página útil:
+  // se o card é maior que isso, é melhor começar na página atual e deixar o
+  // jsPDF clipar/sobrepor naturalmente do que desperdiçar uma página inteira.
+  const usableH = pageH - margin - 30 - (margin + 20);
   const ensureSpace = (needed: number) => {
-    if (y + needed > pageH - margin - 30) {
+    const cap = Math.min(needed, usableH * 0.5);
+    if (y + cap > pageH - margin - 30) {
       doc.addPage();
       y = margin + 20;
     }
