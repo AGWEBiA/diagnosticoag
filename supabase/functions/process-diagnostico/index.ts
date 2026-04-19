@@ -129,6 +129,20 @@ const TOOL_DEFINITION = {
         description:
           "Confiança da análise (0-1). Quanto mais respostas qualitativas detalhadas e contexto RAG relevante, maior.",
       },
+      maturidade_areas: {
+        type: "object",
+        description:
+          "OBRIGATÓRIO: score 0-100 por área de maturidade. Avalie cada área de forma INDEPENDENTE baseado nas respostas concretas do usuário (não copie o score geral). Aquisição: capacidade de gerar leads/tráfego. Conversão: eficiência do funil até a venda. Retenção: capacidade de manter clientes/recorrência. Operacional: processos, time, ferramentas, escalabilidade. Financeiro: margem, fluxo de caixa, previsibilidade.",
+        properties: {
+          aquisicao: { type: "number", description: "0-100" },
+          conversao: { type: "number", description: "0-100" },
+          retencao: { type: "number", description: "0-100" },
+          operacional: { type: "number", description: "0-100" },
+          financeiro: { type: "number", description: "0-100" },
+        },
+        required: ["aquisicao", "conversao", "retencao", "operacional", "financeiro"],
+        additionalProperties: false,
+      },
       swot: {
         type: "object",
         properties: {
