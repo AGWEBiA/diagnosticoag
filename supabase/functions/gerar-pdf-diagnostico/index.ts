@@ -165,7 +165,12 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   drawCover(doc, pageW, pageH, diag);
 
   // -----------------------------------------------
-  // MIOLO claro a partir da página 2
+  // SUMÁRIO (página 2) — placeholder; preenchido no final
+  // -----------------------------------------------
+  doc.addPage();
+
+  // -----------------------------------------------
+  // MIOLO claro a partir da página 3
   // -----------------------------------------------
   doc.addPage();
   let y = margin + 20;
@@ -181,6 +186,13 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
       doc.addPage();
       y = margin + 20;
     }
+  };
+
+  // Coleta entradas do sumário: { label, page, y } — atualizado em cada sectionTitle
+  interface TocEntry { label: string; page: number; y: number }
+  const toc: TocEntry[] = [];
+  const recordToc = (label: string) => {
+    toc.push({ label, page: doc.getCurrentPageInfo().pageNumber, y });
   };
 
   // ---------- 1. PRÓXIMO PASSO IMEDIATO (callout no topo) ----------
@@ -201,6 +213,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 2. SCORE + CLASSIFICAÇÃO ----------
   ensureSpace(120);
+  recordToc("Maturidade do negócio");
   sectionEyebrow(doc, "MATURIDADE DO NEGÓCIO", margin, y);
   y += 14;
   y = drawScorePanel(
@@ -215,6 +228,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 3. RESUMO EXECUTIVO ----------
   ensureSpace(100);
+  recordToc("Resumo executivo");
   sectionTitle(doc, "Resumo executivo", margin, y);
   y += 24;
   y = paragraph(
@@ -231,6 +245,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 4. DIAGNÓSTICO NARRATIVO ----------
   if (payload.diagnostico_narrativo) {
     ensureSpace(100);
+    recordToc("Análise estratégica");
     sectionTitle(doc, "Análise estratégica", margin, y);
     y += 24;
     y = paragraph(
@@ -248,6 +263,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 5. SWOT (2x2) ----------
   if (payload.swot) {
     ensureSpace(40);
+    recordToc("Análise SWOT");
     sectionTitle(doc, "Análise SWOT", margin, y);
     y += 24;
     y = drawSwot(doc, payload.swot, margin, y, contentW, ensureSpace);
@@ -257,6 +273,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 6. GARGALOS PRINCIPAIS ----------
   if (payload.gargalos_principais && payload.gargalos_principais.length > 0) {
     ensureSpace(60);
+    recordToc("Gargalos principais");
     sectionTitle(doc, "Gargalos principais (causa-raiz)", margin, y);
     y += 24;
     payload.gargalos_principais.forEach((g, i) => {
@@ -269,6 +286,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 7. RECOMENDAÇÕES ----------
   if (recomendacoes.length > 0) {
     ensureSpace(60);
+    recordToc(`Recomendações (${recomendacoes.length})`);
     sectionTitle(doc, `Recomendações priorizadas (${recomendacoes.length})`, margin, y);
     y += 24;
     recomendacoes.forEach((r, i) => {
@@ -280,6 +298,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 8. ROADMAP TIMELINE ----------
   if (payload.roadmap) {
     ensureSpace(80);
+    recordToc("Roadmap estratégico");
     sectionTitle(doc, "Roadmap estratégico", margin, y);
     y += 24;
     y = drawRoadmap(doc, payload.roadmap, margin, y, contentW, ensureSpace);
@@ -289,6 +308,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 9. KPIs ----------
   if (payload.kpis_monitorar && payload.kpis_monitorar.length > 0) {
     ensureSpace(80);
+    recordToc("KPIs para monitorar");
     sectionTitle(doc, "KPIs para monitorar", margin, y);
     y += 24;
     y = drawKpisTable(doc, payload.kpis_monitorar, margin, y, contentW, ensureSpace);
@@ -298,6 +318,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 10. RISCOS ----------
   if (payload.riscos && payload.riscos.length > 0) {
     ensureSpace(80);
+    recordToc("Riscos & mitigação");
     sectionTitle(doc, "Riscos & mitigação", margin, y);
     y += 24;
     payload.riscos.forEach((r) => {
@@ -305,6 +326,12 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
       y += 8;
     });
   }
+
+  // -----------------------------------------------
+  // SUMÁRIO: voltar para página 2 e preencher
+  // -----------------------------------------------
+  doc.setPage(2);
+  drawSumario(doc, pageW, pageH, margin, contentW, toc, diag.empresa_nome ?? "Diagnóstico");
 
   // -----------------------------------------------
   // Header/footer em todas as páginas (exceto capa)
