@@ -242,11 +242,13 @@ const Landing = () => {
                   Depois de 10+ anos no mercado, gerenciando mais de <strong>R$ 40 milhões</strong> em resultados
                   digitais e atendendo empresas como SENAI, Coca-Cola e Grupo Jovem Pan, descobri algo que muda tudo:
                 </p>
-                <blockquote className="border-l-4 border-primary bg-muted/30 p-5 text-foreground">
-                  <strong>
+                <blockquote className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-6 shadow-elevated md:p-8">
+                  <div className="absolute left-0 top-0 h-full w-1 bg-gradient-primary" />
+                  <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
+                  <p className="text-lg font-semibold leading-relaxed text-foreground md:text-xl">
                     A maioria dos negócios digitais falha não porque a estratégia é ruim, mas porque ninguém fez
-                    um DIAGNÓSTICO PROFUNDO antes de agir.
-                  </strong>
+                    um <span className="text-primary">DIAGNÓSTICO PROFUNDO</span> antes de agir.
+                  </p>
                 </blockquote>
                 <p>
                   É como tentar consertar um carro sem saber o que está quebrado. Você pode gastar uma fortuna em
