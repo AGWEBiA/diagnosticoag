@@ -238,6 +238,16 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   );
   y += 20;
 
+  // ---------- 2b. RADAR DE MATURIDADE POR ÁREA ----------
+  if (payload.maturidade_areas) {
+    y = ensureSpace(230);
+    recordToc("Maturidade por área");
+    sectionEyebrow(doc, "MATURIDADE POR ÁREA", margin, y);
+    y += 14;
+    y = drawRadarMaturidade(doc, payload.maturidade_areas, margin, y, contentW);
+    y += 20;
+  }
+
   // ---------- 3. RESUMO EXECUTIVO ----------
   ensureSpace(100);
   recordToc("Resumo executivo");
