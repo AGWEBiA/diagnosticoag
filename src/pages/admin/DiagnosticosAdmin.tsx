@@ -169,12 +169,7 @@ const DiagnosticosAdmin = () => {
 
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_SIZE));
 
-  const recos = (viewing?.recomendacoes ?? []) as Array<{
-    titulo?: string;
-    descricao?: string;
-    impacto?: string;
-    prioridade?: number;
-  }>;
+  const analise = (viewing?.recomendacoes ?? null) as DiagnosticoAnalise | null;
 
   return (
     <div className="space-y-4">
