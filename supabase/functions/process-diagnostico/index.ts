@@ -549,6 +549,8 @@ Deno.serve(async (req) => {
     const ragContexto = await searchKnowledge(supabaseAdmin, ragQuery);
     const contextoTexto = formatRagContext(ragContexto);
 
+    const maturidadeAncora = calcMaturidadeBase(respostas);
+
     const userPrompt = `# DADOS DO NEGÓCIO
 
 Empresa: ${diag.empresa_nome ?? "não informado"}
@@ -561,6 +563,11 @@ ${JSON.stringify(respostas, null, 2)}
 
 # CONTEXTO DE CONHECIMENTO VERIFICADO (RAG)
 ${contextoTexto}
+
+# ÂNCORA DE MATURIDADE POR ÁREA (calculada deterministicamente a partir das respostas — use como ponto de partida e ajuste com base no contexto qualitativo)
+\`\`\`json
+${JSON.stringify(maturidadeAncora, null, 2)}
+\`\`\`
 
 # TAREFA
 Produza um diagnóstico estratégico PROFUNDO e DETALHADO, no nível de uma consultoria sênior. Conecte explicitamente as respostas qualitativas (ICP, frustração, tentativas falhas, recursos, prazo, concorrência) com as métricas quantitativas (faturamento, ticket, investimento, metas, gargalo). O usuário pagou por este relatório e espera profundidade real — vá fundo em causa-raiz, dê plano de ação executável e use linguagem específica para o caso dele, não conselhos genéricos.`;
