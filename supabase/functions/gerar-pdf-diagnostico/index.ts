@@ -175,21 +175,20 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   doc.addPage();
   let y = margin + 20;
 
-  // Quebra de página inteligente:
-  // - Se o conteúdo cabe na página atual, desenha aqui.
-  // - Se NÃO cabe na página atual MAS cabe inteiro em uma página nova, quebra.
-  // - Se for maior que uma página inteira (raro: card gigante), começa na atual
-  //   e deixa o desenho fluir (single-card overflow é melhor que página vazia).
-  const usableH = pageH - margin - 30 - (margin + 20);
-  const ensureSpace = (needed: number) => {
-    const remaining = pageH - margin - 30 - y;
-    if (needed <= remaining) return; // cabe aqui
-    if (needed <= usableH) {
-      // não cabe aqui mas cabe em página nova — quebra
-      doc.addPage();
-      y = margin + 20;
-    }
-    // se needed > usableH, deixa fluir na atual (card gigante)
+  // Quebra de página robusta:
+  // - footerReserve garante que conteúdo nunca invada o footer
+  // - SEMPRE quebra se não couber (cards grandes que excedem usableH são raros;
+  //   neste caso desenha do topo e aceita um pequeno overflow controlado)
+  // - Retorna o novo y para que primitivos sincronizem após break
+  const footerReserve = 60;
+  const topY = margin + 20;
+  const usableH = pageH - footerReserve - topY;
+  const ensureSpace = (needed: number): number => {
+    const remaining = pageH - footerReserve - y;
+    if (needed <= remaining) return y;
+    doc.addPage();
+    y = topY;
+    return y;
   };
 
   // Coleta entradas do sumário: { label, page, y } — atualizado em cada sectionTitle
@@ -513,7 +512,13 @@ function drawCover(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(C.emeraldGlow[0], C.emeraldGlow[1], C.emeraldGlow[2]);
-  doc.text(classificarScore(score), scoreX, cardY + 145);
+  // Quebra a classificação dentro da largura disponível do card direito
+  const classifLines = doc.splitTextToSize(classificarScore(score), 140) as string[];
+  let yClass = cardY + 145;
+  classifLines.slice(0, 2).forEach((line) => {
+    doc.text(line, scoreX, yClass);
+    yClass += 11;
+  });
 
   // Rodapé da capa
   doc.setFont("helvetica", "normal");
@@ -722,7 +727,7 @@ function paragraph(
   y: number,
   width: number,
   opts: { size?: number; bold?: boolean; color?: [number, number, number]; lineHeight?: number },
-  ensureSpace?: (n: number) => void,
+  ensureSpace?: (n: number) => number,
 ): number {
   const size = opts.size ?? 10;
   const lineHeight = opts.lineHeight ?? size + 3;
@@ -730,13 +735,12 @@ function paragraph(
   doc.setFont("helvetica", opts.bold ? "bold" : "normal");
   doc.setFontSize(size);
   doc.setTextColor(color[0], color[1], color[2]);
-  // Suporta múltiplos parágrafos separados por \n\n
   const blocks = text.split(/\n\n+/);
   let yy = y;
   blocks.forEach((block, idx) => {
     const lines = doc.splitTextToSize(block.trim(), width) as string[];
     for (const line of lines) {
-      if (ensureSpace) ensureSpace(lineHeight);
+      if (ensureSpace) yy = ensureSpace(lineHeight);
       doc.text(line, x, yy);
       yy += lineHeight;
     }
@@ -865,7 +869,7 @@ function drawSwot(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   const gap = 12;
   const cellW = (width - gap) / 2;
@@ -917,7 +921,7 @@ function drawSwot(
   const rowBotH = Math.max(cellHeight(cells[2].items), cellHeight(cells[3].items));
   const totalH = rowTopH + rowBotH + gap;
 
-  ensureSpace(totalH + 10);
+  y = ensureSpace(totalH + 10);
 
   const drawCell = (
     cx: number,
@@ -970,7 +974,7 @@ function drawGargalo(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   // Mede altura
   doc.setFontSize(10);
@@ -980,7 +984,7 @@ function drawGargalo(
   const h =
     36 + descLines.length * 12 + 18 + causaLines.length * 12 + 18 + impLines.length * 12 + 16;
 
-  ensureSpace(h + 8);
+  y = ensureSpace(h + 8);
 
   // Card background
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
@@ -1066,7 +1070,7 @@ function drawRecomendacao(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   const accent =
     r.prioridade === "alta" ? C.danger : r.prioridade === "media" ? C.warning : C.info;
@@ -1096,7 +1100,7 @@ function drawRecomendacao(
     metaH +
     32;
 
-  ensureSpace(h + 10);
+  y = ensureSpace(h + 10);
 
   // Card
   doc.setFillColor(255, 255, 255);
@@ -1241,7 +1245,7 @@ function drawRoadmap(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   const horizontes: Array<{ label: string; marcos: Marco[]; color: [number, number, number] }> = [
     { label: "90 DIAS — QUICK WINS", marcos: roadmap.dias_90 ?? [], color: C.success },
@@ -1253,19 +1257,9 @@ function drawRoadmap(
   horizontes.forEach((h) => {
     if (h.marcos.length === 0) return;
 
-    // Mede altura do bloco
-    let blockH = 28; // header
-    h.marcos.forEach((m) => {
-      doc.setFontSize(10);
-      const tituloLines = doc.splitTextToSize(safe(m.titulo, "—"), width - 50) as string[];
-      doc.setFontSize(9);
-      const descLines = doc.splitTextToSize(safe(m.descricao, "—"), width - 50) as string[];
-      blockH += tituloLines.length * 12 + descLines.length * 11 + 18;
-    });
+    // Header do horizonte: reserva header + ao menos 1 marco curto
+    yy = ensureSpace(28 + 60);
 
-    ensureSpace(blockH + 10);
-
-    // Header do horizonte
     doc.setFillColor(h.color[0], h.color[1], h.color[2]);
     doc.roundedRect(x, yy, width, 22, 4, 4, "F");
     doc.setFont("helvetica", "bold");
@@ -1274,39 +1268,40 @@ function drawRoadmap(
     doc.text(h.label, x + 12, yy + 14);
     yy += 28;
 
-    // Marcos
+    // Marcos individualmente — cada marco reserva sua própria altura
     h.marcos.forEach((m, idx) => {
-      // Bullet
+      doc.setFontSize(10);
+      const tituloLines = doc.splitTextToSize(safe(m.titulo, "—"), width - 50) as string[];
+      doc.setFontSize(9);
+      const descLines = doc.splitTextToSize(safe(m.descricao, "—"), width - 50) as string[];
+      const marcoH = tituloLines.length * 12 + descLines.length * 11 + (m.kpi ? 14 : 0) + 18;
+
+      yy = ensureSpace(marcoH);
+
       doc.setFillColor(h.color[0], h.color[1], h.color[2]);
       doc.circle(x + 8, yy + 4, 3, "F");
-      // Linha vertical conectando se não for último
       if (idx < h.marcos.length - 1) {
         doc.setDrawColor(h.color[0], h.color[1], h.color[2]);
         doc.setLineWidth(0.8);
-        doc.line(x + 8, yy + 8, x + 8, yy + 50);
+        doc.line(x + 8, yy + 8, x + 8, yy + marcoH - 4);
       }
 
-      // Título
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.setTextColor(C.text[0], C.text[1], C.text[2]);
-      const tituloLines = doc.splitTextToSize(safe(m.titulo, "—"), width - 50) as string[];
       tituloLines.forEach((line, i) => {
         doc.text(line, x + 22, yy + 6 + i * 12);
       });
       let inner = yy + 6 + tituloLines.length * 12;
 
-      // Descrição
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
-      const descLines = doc.splitTextToSize(safe(m.descricao, "—"), width - 50) as string[];
       descLines.forEach((line) => {
         doc.text(line, x + 22, inner);
         inner += 11;
       });
 
-      // KPI
       if (m.kpi) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
@@ -1333,14 +1328,14 @@ function drawKpisTable(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   // Colunas: Nome | Atual | Meta | Como medir
   const colW = [width * 0.28, width * 0.18, width * 0.18, width * 0.36];
   const headerH = 26;
   const rowMinH = 30;
 
-  ensureSpace(headerH + rowMinH * 2 + 20);
+  y = ensureSpace(headerH + rowMinH * 2 + 20);
 
   // Header
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
@@ -1366,7 +1361,7 @@ function drawKpisTable(
     const lineCount = Math.max(nomeLines.length, atualLines.length, metaLines.length, medirLines.length);
     const rowH = Math.max(rowMinH, lineCount * 11 + 12);
 
-    ensureSpace(rowH + 4);
+    yy = ensureSpace(rowH + 4);
 
     // Zebra
     if (idx % 2 === 0) {
@@ -1415,7 +1410,7 @@ function drawRisco(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => void,
+  ensureSpace: (n: number) => number,
 ): number {
   doc.setFontSize(10);
   const tituloLines = doc.splitTextToSize(safe(r.titulo, "—"), width - 32) as string[];
@@ -1423,7 +1418,7 @@ function drawRisco(
   const mitLines = doc.splitTextToSize(safe(r.mitigacao, "—"), width - 32) as string[];
   const h = tituloLines.length * 13 + 18 + mitLines.length * 11 + 28;
 
-  ensureSpace(h + 4);
+  y = ensureSpace(h + 4);
 
   // Card
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
