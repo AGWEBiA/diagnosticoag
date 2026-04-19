@@ -510,7 +510,13 @@ function drawCover(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(C.emeraldGlow[0], C.emeraldGlow[1], C.emeraldGlow[2]);
-  doc.text(classificarScore(score), scoreX, cardY + 145);
+  // Quebra a classificação dentro da largura disponível do card direito
+  const classifLines = doc.splitTextToSize(classificarScore(score), 140) as string[];
+  let yClass = cardY + 145;
+  classifLines.slice(0, 2).forEach((line) => {
+    doc.text(line, scoreX, yClass);
+    yClass += 11;
+  });
 
   // Rodapé da capa
   doc.setFont("helvetica", "normal");
