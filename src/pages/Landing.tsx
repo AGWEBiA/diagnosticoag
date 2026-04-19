@@ -171,7 +171,7 @@ const Landing = () => {
                 <Sparkles className="mr-1.5 h-3.5 w-3.5" />
                 Análise estratégica com IA Proprietária + Equipe de Especialistas
               </Badge>
-              <h1 className="text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
+              <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
                 Descubra os{' '}
                 <span className="bg-gradient-to-br from-primary to-primary-glow bg-clip-text text-transparent">
                   GARGALOS REAIS
