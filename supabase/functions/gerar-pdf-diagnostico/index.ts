@@ -175,21 +175,18 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   doc.addPage();
   let y = margin + 20;
 
-  // Quebra de página inteligente:
-  // - Se o conteúdo cabe na página atual, desenha aqui.
-  // - Se NÃO cabe na página atual MAS cabe inteiro em uma página nova, quebra.
-  // - Se for maior que uma página inteira (raro: card gigante), começa na atual
-  //   e deixa o desenho fluir (single-card overflow é melhor que página vazia).
-  const usableH = pageH - margin - 30 - (margin + 20);
+  // Quebra de página robusta:
+  // - footerReserve garante que nenhum conteúdo invada a área do footer
+  // - SEMPRE quebra se não couber, mesmo para cards grandes (clamp via primitivos)
+  // - Após addPage, posiciona y abaixo do header (margin + 20)
+  const footerReserve = 60; // 40 do footer + 20 buffer
+  const topY = margin + 20;
+  const usableH = pageH - footerReserve - topY;
   const ensureSpace = (needed: number) => {
-    const remaining = pageH - margin - 30 - y;
-    if (needed <= remaining) return; // cabe aqui
-    if (needed <= usableH) {
-      // não cabe aqui mas cabe em página nova — quebra
-      doc.addPage();
-      y = margin + 20;
-    }
-    // se needed > usableH, deixa fluir na atual (card gigante)
+    const remaining = pageH - footerReserve - y;
+    if (needed <= remaining) return;
+    doc.addPage();
+    y = topY;
   };
 
   // Coleta entradas do sumário: { label, page, y } — atualizado em cada sectionTitle
