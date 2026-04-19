@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DiagnosticoChat } from '@/components/admin/DiagnosticoChat';
+import { DiagnosticoDetalhes, type DiagnosticoAnalise } from '@/components/admin/DiagnosticoDetalhes';
 import {
   Pagination,
   PaginationContent,
