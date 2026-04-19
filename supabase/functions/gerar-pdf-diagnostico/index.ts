@@ -1258,14 +1258,8 @@ function drawRoadmap(
   horizontes.forEach((h) => {
     if (h.marcos.length === 0) return;
 
-    // Header do horizonte — reserva apenas a altura do header
-    ensureSpace(28 + 60); // header + ao menos 1 marco
-    yy = (y === yy) ? yy : y; // resync caso ensureSpace tenha quebrado
-    if (yy === topYAfterBreak()) {
-      // ensureSpace acabou de quebrar página, y foi atualizado
-    }
-    // Sempre puxa do y atual após ensureSpace
-    yy = currentY();
+    // Header do horizonte: reserva header + ao menos 1 marco curto
+    yy = ensureSpace(28 + 60);
 
     doc.setFillColor(h.color[0], h.color[1], h.color[2]);
     doc.roundedRect(x, yy, width, 22, 4, 4, "F");
@@ -1274,9 +1268,8 @@ function drawRoadmap(
     doc.setTextColor(255, 255, 255);
     doc.text(h.label, x + 12, yy + 14);
     yy += 28;
-    setCurrentY(yy);
 
-    // Marcos individualmente — cada um reserva sua própria altura
+    // Marcos individualmente — cada marco reserva sua própria altura
     h.marcos.forEach((m, idx) => {
       doc.setFontSize(10);
       const tituloLines = doc.splitTextToSize(safe(m.titulo, "—"), width - 50) as string[];
@@ -1284,10 +1277,8 @@ function drawRoadmap(
       const descLines = doc.splitTextToSize(safe(m.descricao, "—"), width - 50) as string[];
       const marcoH = tituloLines.length * 12 + descLines.length * 11 + (m.kpi ? 14 : 0) + 18;
 
-      ensureSpace(marcoH);
-      yy = currentY();
+      yy = ensureSpace(marcoH);
 
-      // Bullet
       doc.setFillColor(h.color[0], h.color[1], h.color[2]);
       doc.circle(x + 8, yy + 4, 3, "F");
       if (idx < h.marcos.length - 1) {
@@ -1321,11 +1312,9 @@ function drawRoadmap(
       }
 
       yy = inner + 8;
-      setCurrentY(yy);
     });
 
     yy += 8;
-    setCurrentY(yy);
   });
 
   return yy;
