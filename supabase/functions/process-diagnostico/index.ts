@@ -65,12 +65,21 @@ interface Risco {
   mitigacao: string;
 }
 
+interface MaturidadeAreas {
+  aquisicao: number;
+  conversao: number;
+  retencao: number;
+  operacional: number;
+  financeiro: number;
+}
+
 interface AnaliseEstruturada {
   resumo_executivo: string;
   diagnostico_narrativo: string;
   score: number;
   classificacao_maturidade: string;
   confianca: number;
+  maturidade_areas: MaturidadeAreas;
   swot: {
     forcas: string[];
     fraquezas: string[];
