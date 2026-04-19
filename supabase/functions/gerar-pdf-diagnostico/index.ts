@@ -1256,19 +1256,15 @@ function drawRoadmap(
   horizontes.forEach((h) => {
     if (h.marcos.length === 0) return;
 
-    // Mede altura do bloco
-    let blockH = 28; // header
-    h.marcos.forEach((m) => {
-      doc.setFontSize(10);
-      const tituloLines = doc.splitTextToSize(safe(m.titulo, "—"), width - 50) as string[];
-      doc.setFontSize(9);
-      const descLines = doc.splitTextToSize(safe(m.descricao, "—"), width - 50) as string[];
-      blockH += tituloLines.length * 12 + descLines.length * 11 + 18;
-    });
+    // Header do horizonte — reserva apenas a altura do header
+    ensureSpace(28 + 60); // header + ao menos 1 marco
+    yy = (y === yy) ? yy : y; // resync caso ensureSpace tenha quebrado
+    if (yy === topYAfterBreak()) {
+      // ensureSpace acabou de quebrar página, y foi atualizado
+    }
+    // Sempre puxa do y atual após ensureSpace
+    yy = currentY();
 
-    ensureSpace(blockH + 10);
-
-    // Header do horizonte
     doc.setFillColor(h.color[0], h.color[1], h.color[2]);
     doc.roundedRect(x, yy, width, 22, 4, 4, "F");
     doc.setFont("helvetica", "bold");
@@ -1276,40 +1272,44 @@ function drawRoadmap(
     doc.setTextColor(255, 255, 255);
     doc.text(h.label, x + 12, yy + 14);
     yy += 28;
+    setCurrentY(yy);
 
-    // Marcos
+    // Marcos individualmente — cada um reserva sua própria altura
     h.marcos.forEach((m, idx) => {
+      doc.setFontSize(10);
+      const tituloLines = doc.splitTextToSize(safe(m.titulo, "—"), width - 50) as string[];
+      doc.setFontSize(9);
+      const descLines = doc.splitTextToSize(safe(m.descricao, "—"), width - 50) as string[];
+      const marcoH = tituloLines.length * 12 + descLines.length * 11 + (m.kpi ? 14 : 0) + 18;
+
+      ensureSpace(marcoH);
+      yy = currentY();
+
       // Bullet
       doc.setFillColor(h.color[0], h.color[1], h.color[2]);
       doc.circle(x + 8, yy + 4, 3, "F");
-      // Linha vertical conectando se não for último
       if (idx < h.marcos.length - 1) {
         doc.setDrawColor(h.color[0], h.color[1], h.color[2]);
         doc.setLineWidth(0.8);
-        doc.line(x + 8, yy + 8, x + 8, yy + 50);
+        doc.line(x + 8, yy + 8, x + 8, yy + marcoH - 4);
       }
 
-      // Título
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.setTextColor(C.text[0], C.text[1], C.text[2]);
-      const tituloLines = doc.splitTextToSize(safe(m.titulo, "—"), width - 50) as string[];
       tituloLines.forEach((line, i) => {
         doc.text(line, x + 22, yy + 6 + i * 12);
       });
       let inner = yy + 6 + tituloLines.length * 12;
 
-      // Descrição
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
-      const descLines = doc.splitTextToSize(safe(m.descricao, "—"), width - 50) as string[];
       descLines.forEach((line) => {
         doc.text(line, x + 22, inner);
         inner += 11;
       });
 
-      // KPI
       if (m.kpi) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
@@ -1319,9 +1319,11 @@ function drawRoadmap(
       }
 
       yy = inner + 8;
+      setCurrentY(yy);
     });
 
     yy += 8;
+    setCurrentY(yy);
   });
 
   return yy;
