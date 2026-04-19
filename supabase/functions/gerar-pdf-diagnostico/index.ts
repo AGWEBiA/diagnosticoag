@@ -397,9 +397,11 @@ function drawCover(
   doc.setLineWidth(1.5);
   doc.line(60, 100, 220, 100);
 
-  // Título principal
+  // Título principal — usa charSpace 0 explícito para evitar kerning quebrado
+  // em fontes grandes. Também aplica splitTextToSize para garantir layout.
+  doc.setCharSpace(0);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(38);
+  doc.setFontSize(36);
   doc.setTextColor(255, 255, 255);
   doc.text("Relatório", 60, 160);
   doc.setTextColor(C.emeraldGlow[0], C.emeraldGlow[1], C.emeraldGlow[2]);
