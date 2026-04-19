@@ -166,8 +166,8 @@ const Perfil = () => {
     const { data, error } = await supabase.storage
       .from('relatorios')
       .createSignedUrl(storagePath, 60);
-    setDownloadingId(null);
     if (error || !data?.signedUrl) {
+      setDownloadingId(null);
       toast({
         title: 'Não foi possível gerar link',
         description: error?.message ?? 'Tente novamente.',
@@ -175,7 +175,29 @@ const Perfil = () => {
       });
       return;
     }
-    window.open(data.signedUrl, '_blank', 'noopener');
+
+    try {
+      // fetch+blob evita ERR_BLOCKED_BY_CLIENT (extensões bloqueando supabase.co)
+      const resp = await fetch(data.signedUrl);
+      if (!resp.ok) throw new Error(`Falha no download (${resp.status})`);
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = storagePath.split('/').pop() ?? 'relatorio.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (e) {
+      toast({
+        title: 'Erro no download',
+        description: e instanceof Error ? e.message : 'Tente desativar adblock para este site.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const handleAvatarFile = async (e: ChangeEvent<HTMLInputElement>) => {
