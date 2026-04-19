@@ -165,22 +165,38 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   drawCover(doc, pageW, pageH, diag);
 
   // -----------------------------------------------
-  // MIOLO claro a partir da página 2
+  // SUMÁRIO (página 2) — placeholder; preenchido no final
+  // -----------------------------------------------
+  doc.addPage();
+
+  // -----------------------------------------------
+  // MIOLO claro a partir da página 3
   // -----------------------------------------------
   doc.addPage();
   let y = margin + 20;
 
-  // Quebra de página apenas se faltar MUITO espaço (evita páginas semi-vazias).
-  // Para cards grandes, limita o "needed" a no máximo metade da página útil:
-  // se o card é maior que isso, é melhor começar na página atual e deixar o
-  // jsPDF clipar/sobrepor naturalmente do que desperdiçar uma página inteira.
+  // Quebra de página inteligente:
+  // - Se o conteúdo cabe na página atual, desenha aqui.
+  // - Se NÃO cabe na página atual MAS cabe inteiro em uma página nova, quebra.
+  // - Se for maior que uma página inteira (raro: card gigante), começa na atual
+  //   e deixa o desenho fluir (single-card overflow é melhor que página vazia).
   const usableH = pageH - margin - 30 - (margin + 20);
   const ensureSpace = (needed: number) => {
-    const cap = Math.min(needed, usableH * 0.5);
-    if (y + cap > pageH - margin - 30) {
+    const remaining = pageH - margin - 30 - y;
+    if (needed <= remaining) return; // cabe aqui
+    if (needed <= usableH) {
+      // não cabe aqui mas cabe em página nova — quebra
       doc.addPage();
       y = margin + 20;
     }
+    // se needed > usableH, deixa fluir na atual (card gigante)
+  };
+
+  // Coleta entradas do sumário: { label, page, y } — atualizado em cada sectionTitle
+  interface TocEntry { label: string; page: number; y: number }
+  const toc: TocEntry[] = [];
+  const recordToc = (label: string) => {
+    toc.push({ label, page: doc.getCurrentPageInfo().pageNumber, y });
   };
 
   // ---------- 1. PRÓXIMO PASSO IMEDIATO (callout no topo) ----------
@@ -201,6 +217,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 2. SCORE + CLASSIFICAÇÃO ----------
   ensureSpace(120);
+  recordToc("Maturidade do negócio");
   sectionEyebrow(doc, "MATURIDADE DO NEGÓCIO", margin, y);
   y += 14;
   y = drawScorePanel(
@@ -215,6 +232,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 3. RESUMO EXECUTIVO ----------
   ensureSpace(100);
+  recordToc("Resumo executivo");
   sectionTitle(doc, "Resumo executivo", margin, y);
   y += 24;
   y = paragraph(
@@ -231,6 +249,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 4. DIAGNÓSTICO NARRATIVO ----------
   if (payload.diagnostico_narrativo) {
     ensureSpace(100);
+    recordToc("Análise estratégica");
     sectionTitle(doc, "Análise estratégica", margin, y);
     y += 24;
     y = paragraph(
@@ -248,6 +267,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 5. SWOT (2x2) ----------
   if (payload.swot) {
     ensureSpace(40);
+    recordToc("Análise SWOT");
     sectionTitle(doc, "Análise SWOT", margin, y);
     y += 24;
     y = drawSwot(doc, payload.swot, margin, y, contentW, ensureSpace);
@@ -257,6 +277,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 6. GARGALOS PRINCIPAIS ----------
   if (payload.gargalos_principais && payload.gargalos_principais.length > 0) {
     ensureSpace(60);
+    recordToc("Gargalos principais");
     sectionTitle(doc, "Gargalos principais (causa-raiz)", margin, y);
     y += 24;
     payload.gargalos_principais.forEach((g, i) => {
@@ -269,6 +290,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 7. RECOMENDAÇÕES ----------
   if (recomendacoes.length > 0) {
     ensureSpace(60);
+    recordToc(`Recomendações (${recomendacoes.length})`);
     sectionTitle(doc, `Recomendações priorizadas (${recomendacoes.length})`, margin, y);
     y += 24;
     recomendacoes.forEach((r, i) => {
@@ -280,6 +302,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 8. ROADMAP TIMELINE ----------
   if (payload.roadmap) {
     ensureSpace(80);
+    recordToc("Roadmap estratégico");
     sectionTitle(doc, "Roadmap estratégico", margin, y);
     y += 24;
     y = drawRoadmap(doc, payload.roadmap, margin, y, contentW, ensureSpace);
@@ -289,6 +312,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 9. KPIs ----------
   if (payload.kpis_monitorar && payload.kpis_monitorar.length > 0) {
     ensureSpace(80);
+    recordToc("KPIs para monitorar");
     sectionTitle(doc, "KPIs para monitorar", margin, y);
     y += 24;
     y = drawKpisTable(doc, payload.kpis_monitorar, margin, y, contentW, ensureSpace);
@@ -298,6 +322,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   // ---------- 10. RISCOS ----------
   if (payload.riscos && payload.riscos.length > 0) {
     ensureSpace(80);
+    recordToc("Riscos & mitigação");
     sectionTitle(doc, "Riscos & mitigação", margin, y);
     y += 24;
     payload.riscos.forEach((r) => {
@@ -305,6 +330,12 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
       y += 8;
     });
   }
+
+  // -----------------------------------------------
+  // SUMÁRIO: voltar para página 2 e preencher
+  // -----------------------------------------------
+  doc.setPage(2);
+  drawSumario(doc, pageW, pageH, margin, contentW, toc, diag.empresa_nome ?? "Diagnóstico");
 
   // -----------------------------------------------
   // Header/footer em todas as páginas (exceto capa)
@@ -329,6 +360,10 @@ function drawCover(
   pageH: number,
   diag: DiagDataPdf,
 ) {
+  // Reset character spacing logo no início da capa para garantir que
+  // chamadas anteriores não influenciem o kerning do título.
+  doc.setCharSpace(0);
+
   // Fundo escuro
   doc.setFillColor(C.darkBg[0], C.darkBg[1], C.darkBg[2]);
   doc.rect(0, 0, pageW, pageH, "F");
@@ -370,9 +405,11 @@ function drawCover(
   doc.setLineWidth(1.5);
   doc.line(60, 100, 220, 100);
 
-  // Título principal
+  // Título principal — usa charSpace 0 explícito para evitar kerning quebrado
+  // em fontes grandes. Também aplica splitTextToSize para garantir layout.
+  doc.setCharSpace(0);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(38);
+  doc.setFontSize(36);
   doc.setTextColor(255, 255, 255);
   doc.text("Relatório", 60, 160);
   doc.setTextColor(C.emeraldGlow[0], C.emeraldGlow[1], C.emeraldGlow[2]);
@@ -487,6 +524,126 @@ function drawCover(
   doc.text("•", pageW - 75, pageH - 40);
   doc.setTextColor(140, 165, 155);
   doc.text("Página de capa", pageW - 65, pageH - 40);
+}
+
+// =====================================================
+// SUMÁRIO clicável (página 2)
+// =====================================================
+function drawSumario(
+  doc: jsPDF,
+  pageW: number,
+  pageH: number,
+  margin: number,
+  contentW: number,
+  toc: Array<{ label: string; page: number; y: number }>,
+  empresa: string,
+) {
+  doc.setCharSpace(0);
+
+  // Fundo branco padrão (já é default)
+  // Top accent verde
+  doc.setFillColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+  doc.rect(0, 0, pageW, 4, "F");
+
+  let y = margin + 40;
+
+  // Eyebrow
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+  doc.text("ÍNDICE", margin, y);
+  y += 14;
+
+  // Título
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(28);
+  doc.setTextColor(C.text[0], C.text[1], C.text[2]);
+  doc.text("Sumário", margin, y + 18);
+  y += 32;
+
+  // Linha decorativa verde
+  doc.setDrawColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+  doc.setLineWidth(2);
+  doc.line(margin, y, margin + 48, y);
+  y += 28;
+
+  // Subtítulo descritivo
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
+  doc.text(
+    `Navegue pelas seções deste relatório de ${empresa}. Clique para ir direto.`,
+    margin,
+    y,
+  );
+  y += 28;
+
+  // Lista de entradas
+  const rowH = 28;
+  toc.forEach((entry, idx) => {
+    const rowY = y;
+
+    // Linha de fundo zebra
+    if (idx % 2 === 0) {
+      doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
+      doc.roundedRect(margin, rowY - 16, contentW, rowH, 4, 4, "F");
+    }
+
+    // Número
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+    const num = String(idx + 1).padStart(2, "0");
+    doc.text(num, margin + 8, rowY);
+
+    // Label
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11.5);
+    doc.setTextColor(C.text[0], C.text[1], C.text[2]);
+    doc.text(entry.label, margin + 38, rowY);
+
+    // Dots de preenchimento (visual)
+    const labelW = doc.getTextWidth(entry.label);
+    const dotsStart = margin + 38 + labelW + 8;
+    const dotsEnd = margin + contentW - 36;
+    if (dotsEnd > dotsStart) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(C.textSubtle[0], C.textSubtle[1], C.textSubtle[2]);
+      const dotW = doc.getTextWidth(".");
+      const dotCount = Math.floor((dotsEnd - dotsStart) / (dotW + 1));
+      let dotStr = "";
+      for (let i = 0; i < dotCount; i++) dotStr += " .";
+      doc.text(dotStr, dotsStart, rowY);
+    }
+
+    // Página
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(C.emerald[0], C.emerald[1], C.emerald[2]);
+    doc.text(String(entry.page), margin + contentW - 8, rowY, { align: "right" });
+
+    // Link clicável cobrindo a linha inteira
+    doc.link(margin, rowY - 16, contentW, rowH, {
+      pageNumber: entry.page,
+      top: Math.max(entry.y - 30, 0),
+    });
+
+    y += rowH;
+
+    // Quebra automática se passar do limite (improvável mas seguro)
+    if (y > pageH - margin - 80) return;
+  });
+
+  // Rodapé do sumário
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8.5);
+  doc.setTextColor(C.textSubtle[0], C.textSubtle[1], C.textSubtle[2]);
+  doc.text(
+    "Dica: clique em qualquer item do sumário para saltar diretamente para a seção correspondente.",
+    margin,
+    pageH - margin - 16,
+  );
 }
 
 // =====================================================
