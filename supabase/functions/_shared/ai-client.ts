@@ -16,6 +16,8 @@ export interface AICallWithFallbackResult<T> extends AICallResult<T> {
   fallback_usado: boolean;
 }
 
+export type ReasoningEffort = "minimal" | "low" | "medium" | "high" | "xhigh";
+
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 export async function callAIOnce<T>(opts: {
@@ -24,9 +26,33 @@ export async function callAIOnce<T>(opts: {
   systemPrompt: string;
   userPrompt: string;
   tool: AIToolDefinition;
+  reasoningEffort?: ReasoningEffort;
 }): Promise<AICallResult<T>> {
-  const { apiKey, model, systemPrompt, userPrompt, tool } = opts;
+  const { apiKey, model, systemPrompt, userPrompt, tool, reasoningEffort } = opts;
   if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+
+  const body: Record<string, unknown> = {
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+        },
+      },
+    ],
+    tool_choice: { type: "function", function: { name: tool.name } },
+  };
+
+  if (reasoningEffort) {
+    body.reasoning = { effort: reasoningEffort };
+  }
 
   const response = await fetch(GATEWAY_URL, {
     method: "POST",
@@ -34,24 +60,7 @@ export async function callAIOnce<T>(opts: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: tool.name,
-            description: tool.description,
-            parameters: tool.parameters,
-          },
-        },
-      ],
-      tool_choice: { type: "function", function: { name: tool.name } },
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -81,17 +90,42 @@ export async function callAIWithFallback<T>(opts: {
   systemPrompt: string;
   userPrompt: string;
   tool: AIToolDefinition;
+  reasoningEffort?: ReasoningEffort;
+  fallbackReasoningEffort?: ReasoningEffort;
 }): Promise<AICallWithFallbackResult<T>> {
-  const { apiKey, primaryModel, fallbackModel, systemPrompt, userPrompt, tool } = opts;
+  const {
+    apiKey,
+    primaryModel,
+    fallbackModel,
+    systemPrompt,
+    userPrompt,
+    tool,
+    reasoningEffort,
+    fallbackReasoningEffort,
+  } = opts;
   try {
-    const r = await callAIOnce<T>({ apiKey, model: primaryModel, systemPrompt, userPrompt, tool });
+    const r = await callAIOnce<T>({
+      apiKey,
+      model: primaryModel,
+      systemPrompt,
+      userPrompt,
+      tool,
+      reasoningEffort,
+    });
     return { ...r, modelo_usado: primaryModel, fallback_usado: false };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     const retriable = msg === "rate_limit" || msg.startsWith("upstream_5");
     if (!retriable) throw e;
     console.warn(`Primary model ${primaryModel} falhou (${msg}); tentando fallback ${fallbackModel}`);
-    const r = await callAIOnce<T>({ apiKey, model: fallbackModel, systemPrompt, userPrompt, tool });
+    const r = await callAIOnce<T>({
+      apiKey,
+      model: fallbackModel,
+      systemPrompt,
+      userPrompt,
+      tool,
+      reasoningEffort: fallbackReasoningEffort ?? reasoningEffort,
+    });
     return { ...r, modelo_usado: fallbackModel, fallback_usado: true };
   }
 }
