@@ -16,6 +16,14 @@ import {
   TrendingUp,
   XCircle,
 } from 'lucide-react';
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+} from 'recharts';
 
 // ---------- Tipos espelhando o tool schema do process-diagnostico ----------
 interface SwotData {
