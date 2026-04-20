@@ -1488,20 +1488,25 @@ function drawKpisTable(
   const headerH = 26;
   const rowMinH = 30;
 
-  y = ensureSpace(headerH + rowMinH * 2 + 20, y);
+  // Helper interno: desenha o header da tabela e retorna y após ele.
+  // Usado tanto na 1ª renderização quanto após page-break (cabeçalho repetido).
+  const drawTableHeader = (yStart: number): number => {
+    doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
+    doc.roundedRect(x, yStart, width, headerH, 4, 4, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
+    let cxh = x + 12;
+    ["KPI", "ATUAL (estimado)", "META", "COMO MEDIR"].forEach((label, i) => {
+      doc.text(label, cxh, yStart + 17);
+      cxh += colW[i];
+    });
+    return yStart + headerH;
+  };
 
-  // Header
-  doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
-  doc.roundedRect(x, y, width, headerH, 4, 4, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
-  let cx = x + 12;
-  ["KPI", "ATUAL (estimado)", "META", "COMO MEDIR"].forEach((label, i) => {
-    doc.text(label, cx, y + 17);
-    cx += colW[i];
-  });
-  let yy = y + headerH;
+  // Reserva inicial: cabeçalho + 2 linhas mínimas
+  y = ensureSpace(headerH + rowMinH * 2, y);
+  let yy = drawTableHeader(y);
 
   // Rows
   kpis.forEach((k, idx) => {
@@ -1514,7 +1519,13 @@ function drawKpisTable(
     const lineCount = Math.max(nomeLines.length, atualLines.length, metaLines.length, medirLines.length);
     const rowH = Math.max(rowMinH, lineCount * 11 + 12);
 
+    // Quebra de página: se a linha não cabe, vai para a próxima e REPETE o cabeçalho
+    const before = yy;
     yy = ensureSpace(rowH + 4, yy);
+    if (yy !== before) {
+      // Houve page-break — redesenha o header da tabela para preservar contexto visual
+      yy = drawTableHeader(yy);
+    }
 
     // Zebra
     if (idx % 2 === 0) {
@@ -1530,7 +1541,7 @@ function drawKpisTable(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(C.text[0], C.text[1], C.text[2]);
-    cx = x + 12;
+    let cx = x + 12;
     nomeLines.forEach((line, li) => doc.text(line, cx, yy + 14 + li * 11));
 
     doc.setFont("helvetica", "normal");
