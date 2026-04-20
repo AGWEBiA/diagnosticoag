@@ -292,9 +292,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 6. GARGALOS PRINCIPAIS ----------
-  // Reserva: título(30) + 1º gargalo completo (~200pt)
+  // Reserva: título(30) + 1º gargalo completo (~270pt com sintoma+causa+impacto)
   if (payload.gargalos_principais && payload.gargalos_principais.length > 0) {
-    y = ensureSpace(230, y);
+    y = ensureSpace(300, y);
     recordToc("Gargalos principais");
     sectionTitle(doc, "Gargalos principais (causa-raiz)", margin, y);
     y += 24;
