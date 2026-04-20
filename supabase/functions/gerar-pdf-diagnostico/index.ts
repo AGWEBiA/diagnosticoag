@@ -281,8 +281,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 5. SWOT (2x2) ----------
+  // Reserva: título(30) + grid 2x2 inteiro (~280pt) — evita título órfão e quebra no meio do grid
   if (payload.swot) {
-    y = ensureSpace(40, y);
+    y = ensureSpace(320, y);
     recordToc("Análise SWOT");
     sectionTitle(doc, "Análise SWOT", margin, y);
     y += 24;
@@ -291,8 +292,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 6. GARGALOS PRINCIPAIS ----------
+  // Reserva: título(30) + 1º gargalo completo (~270pt com sintoma+causa+impacto)
   if (payload.gargalos_principais && payload.gargalos_principais.length > 0) {
-    y = ensureSpace(60, y);
+    y = ensureSpace(300, y);
     recordToc("Gargalos principais");
     sectionTitle(doc, "Gargalos principais (causa-raiz)", margin, y);
     y += 24;
@@ -304,8 +306,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 7. RECOMENDAÇÕES ----------
+  // Reserva: título(30) + 1ª recomendação (~200pt)
   if (recomendacoes.length > 0) {
-    y = ensureSpace(60, y);
+    y = ensureSpace(230, y);
     recordToc(`Recomendações (${recomendacoes.length})`);
     sectionTitle(doc, `Recomendações priorizadas (${recomendacoes.length})`, margin, y);
     y += 24;
@@ -316,8 +319,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 8. ROADMAP TIMELINE ----------
+  // Reserva: título(30) + header de fase (28) + 1 marco mínimo (~80pt)
   if (payload.roadmap) {
-    y = ensureSpace(80, y);
+    y = ensureSpace(170, y);
     recordToc("Roadmap estratégico");
     sectionTitle(doc, "Roadmap estratégico", margin, y);
     y += 24;
@@ -326,8 +330,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 9. KPIs ----------
+  // Reserva: título(30) + cabeçalho tabela(26) + 2 linhas (~80pt) — força tabela completa começar com título
   if (payload.kpis_monitorar && payload.kpis_monitorar.length > 0) {
-    y = ensureSpace(80, y);
+    y = ensureSpace(160, y);
     recordToc("KPIs para monitorar");
     sectionTitle(doc, "KPIs para monitorar", margin, y);
     y += 24;
@@ -336,12 +341,31 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 10. RISCOS ----------
+  // Reserva: título(30) + 1º risco completo (~140pt)
   if (payload.riscos && payload.riscos.length > 0) {
-    y = ensureSpace(80, y);
+    y = ensureSpace(180, y);
     recordToc("Riscos & mitigação");
     sectionTitle(doc, "Riscos & mitigação", margin, y);
     y += 24;
-    payload.riscos.forEach((r) => {
+    const riscos = payload.riscos;
+    riscos.forEach((r, i) => {
+      // Anti-widow: se este é o penúltimo risco e o último não caberia junto
+      // na mesma página, força quebra antes para que os 2 últimos fiquem juntos
+      // (evita o último risco aparecer sozinho numa página).
+      if (i === riscos.length - 2 && riscos.length >= 2) {
+        const next = riscos[i + 1];
+        doc.setFontSize(10);
+        const tit = doc.splitTextToSize(safe(next.titulo, "—"), contentW - 32) as string[];
+        doc.setFontSize(9);
+        const mit = doc.splitTextToSize(safe(next.mitigacao, "—"), contentW - 32) as string[];
+        const nextEstH = tit.length * 13 + 18 + mit.length * 11 + 28 + 8;
+        doc.setFontSize(10);
+        const titP = doc.splitTextToSize(safe(r.titulo, "—"), contentW - 32) as string[];
+        doc.setFontSize(9);
+        const mitP = doc.splitTextToSize(safe(r.mitigacao, "—"), contentW - 32) as string[];
+        const curEstH = titP.length * 13 + 18 + mitP.length * 11 + 28 + 8;
+        y = ensureSpace(curEstH + nextEstH, y);
+      }
       y = drawRisco(doc, r, margin, y, contentW, ensureSpace);
       y += 8;
     });
@@ -1482,20 +1506,25 @@ function drawKpisTable(
   const headerH = 26;
   const rowMinH = 30;
 
-  y = ensureSpace(headerH + rowMinH * 2 + 20, y);
+  // Helper interno: desenha o header da tabela e retorna y após ele.
+  // Usado tanto na 1ª renderização quanto após page-break (cabeçalho repetido).
+  const drawTableHeader = (yStart: number): number => {
+    doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
+    doc.roundedRect(x, yStart, width, headerH, 4, 4, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
+    let cxh = x + 12;
+    ["KPI", "ATUAL (estimado)", "META", "COMO MEDIR"].forEach((label, i) => {
+      doc.text(label, cxh, yStart + 17);
+      cxh += colW[i];
+    });
+    return yStart + headerH;
+  };
 
-  // Header
-  doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
-  doc.roundedRect(x, y, width, headerH, 4, 4, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(C.textMuted[0], C.textMuted[1], C.textMuted[2]);
-  let cx = x + 12;
-  ["KPI", "ATUAL (estimado)", "META", "COMO MEDIR"].forEach((label, i) => {
-    doc.text(label, cx, y + 17);
-    cx += colW[i];
-  });
-  let yy = y + headerH;
+  // Reserva inicial: cabeçalho + 2 linhas mínimas
+  y = ensureSpace(headerH + rowMinH * 2, y);
+  let yy = drawTableHeader(y);
 
   // Rows
   kpis.forEach((k, idx) => {
@@ -1508,7 +1537,13 @@ function drawKpisTable(
     const lineCount = Math.max(nomeLines.length, atualLines.length, metaLines.length, medirLines.length);
     const rowH = Math.max(rowMinH, lineCount * 11 + 12);
 
+    // Quebra de página: se a linha não cabe, vai para a próxima e REPETE o cabeçalho
+    const before = yy;
     yy = ensureSpace(rowH + 4, yy);
+    if (yy !== before) {
+      // Houve page-break — redesenha o header da tabela para preservar contexto visual
+      yy = drawTableHeader(yy);
+    }
 
     // Zebra
     if (idx % 2 === 0) {
@@ -1524,7 +1559,7 @@ function drawKpisTable(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(C.text[0], C.text[1], C.text[2]);
-    cx = x + 12;
+    let cx = x + 12;
     nomeLines.forEach((line, li) => doc.text(line, cx, yy + 14 + li * 11));
 
     doc.setFont("helvetica", "normal");
