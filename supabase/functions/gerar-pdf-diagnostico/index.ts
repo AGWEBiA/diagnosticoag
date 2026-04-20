@@ -347,7 +347,25 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
     recordToc("Riscos & mitigação");
     sectionTitle(doc, "Riscos & mitigação", margin, y);
     y += 24;
-    payload.riscos.forEach((r) => {
+    const riscos = payload.riscos;
+    riscos.forEach((r, i) => {
+      // Anti-widow: se este é o penúltimo risco e o último não caberia junto
+      // na mesma página, força quebra antes para que os 2 últimos fiquem juntos
+      // (evita o último risco aparecer sozinho numa página).
+      if (i === riscos.length - 2 && riscos.length >= 2) {
+        const next = riscos[i + 1];
+        doc.setFontSize(10);
+        const tit = doc.splitTextToSize(safe(next.titulo, "—"), contentW - 32) as string[];
+        doc.setFontSize(9);
+        const mit = doc.splitTextToSize(safe(next.mitigacao, "—"), contentW - 32) as string[];
+        const nextEstH = tit.length * 13 + 18 + mit.length * 11 + 28 + 8;
+        doc.setFontSize(10);
+        const titP = doc.splitTextToSize(safe(r.titulo, "—"), contentW - 32) as string[];
+        doc.setFontSize(9);
+        const mitP = doc.splitTextToSize(safe(r.mitigacao, "—"), contentW - 32) as string[];
+        const curEstH = titP.length * 13 + 18 + mitP.length * 11 + 28 + 8;
+        y = ensureSpace(curEstH + nextEstH, y);
+      }
       y = drawRisco(doc, r, margin, y, contentW, ensureSpace);
       y += 8;
     });
