@@ -222,7 +222,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 2. SCORE + CLASSIFICAÇÃO ----------
-  ensureSpace(120);
+  y = ensureSpace(120, y);
   recordToc("Maturidade do negócio");
   sectionEyebrow(doc, "MATURIDADE DO NEGÓCIO", margin, y);
   y += 14;
@@ -238,7 +238,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 2b. RADAR DE MATURIDADE POR ÁREA ----------
   if (payload.maturidade_areas) {
-    y = ensureSpace(230);
+    y = ensureSpace(230, y);
     recordToc("Maturidade por área");
     sectionEyebrow(doc, "MATURIDADE POR ÁREA", margin, y);
     y += 14;
@@ -247,7 +247,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 3. RESUMO EXECUTIVO ----------
-  ensureSpace(100);
+  y = ensureSpace(100, y);
   recordToc("Resumo executivo");
   sectionTitle(doc, "Resumo executivo", margin, y);
   y += 24;
@@ -264,7 +264,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 4. DIAGNÓSTICO NARRATIVO ----------
   if (payload.diagnostico_narrativo) {
-    ensureSpace(100);
+    y = ensureSpace(100, y);
     recordToc("Análise estratégica");
     sectionTitle(doc, "Análise estratégica", margin, y);
     y += 24;
@@ -282,7 +282,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 5. SWOT (2x2) ----------
   if (payload.swot) {
-    ensureSpace(40);
+    y = ensureSpace(40, y);
     recordToc("Análise SWOT");
     sectionTitle(doc, "Análise SWOT", margin, y);
     y += 24;
@@ -292,7 +292,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 6. GARGALOS PRINCIPAIS ----------
   if (payload.gargalos_principais && payload.gargalos_principais.length > 0) {
-    ensureSpace(60);
+    y = ensureSpace(60, y);
     recordToc("Gargalos principais");
     sectionTitle(doc, "Gargalos principais (causa-raiz)", margin, y);
     y += 24;
@@ -305,7 +305,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 7. RECOMENDAÇÕES ----------
   if (recomendacoes.length > 0) {
-    ensureSpace(60);
+    y = ensureSpace(60, y);
     recordToc(`Recomendações (${recomendacoes.length})`);
     sectionTitle(doc, `Recomendações priorizadas (${recomendacoes.length})`, margin, y);
     y += 24;
@@ -317,7 +317,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 8. ROADMAP TIMELINE ----------
   if (payload.roadmap) {
-    ensureSpace(80);
+    y = ensureSpace(80, y);
     recordToc("Roadmap estratégico");
     sectionTitle(doc, "Roadmap estratégico", margin, y);
     y += 24;
@@ -327,7 +327,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 9. KPIs ----------
   if (payload.kpis_monitorar && payload.kpis_monitorar.length > 0) {
-    ensureSpace(80);
+    y = ensureSpace(80, y);
     recordToc("KPIs para monitorar");
     sectionTitle(doc, "KPIs para monitorar", margin, y);
     y += 24;
@@ -337,7 +337,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 10. RISCOS ----------
   if (payload.riscos && payload.riscos.length > 0) {
-    ensureSpace(80);
+    y = ensureSpace(80, y);
     recordToc("Riscos & mitigação");
     sectionTitle(doc, "Riscos & mitigação", margin, y);
     y += 24;
