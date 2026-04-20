@@ -184,20 +184,18 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   doc.addPage();
   let y = margin + 20;
 
-  // Quebra de página robusta:
-  // - footerReserve garante que conteúdo nunca invada o footer
-  // - SEMPRE quebra se não couber (cards grandes que excedem usableH são raros;
-  //   neste caso desenha do topo e aceita um pequeno overflow controlado)
-  // - Retorna o novo y para que primitivos sincronizem após break
+  // Quebra de página robusta — função PURA:
+  // - Recebe o y corrente (currentY) e retorna o y após eventual page-break.
+  // - Se há espaço suficiente, retorna o próprio currentY (NÃO o y do closure!).
+  // - Se não cabe, adiciona página e retorna topY.
+  // O caller SEMPRE deve fazer: y = ensureSpace(needed, y)
   const footerReserve = 60;
   const topY = margin + 20;
-  const usableH = pageH - footerReserve - topY;
-  const ensureSpace = (needed: number): number => {
-    const remaining = pageH - footerReserve - y;
-    if (needed <= remaining) return y;
+  const ensureSpace = (needed: number, currentY: number): number => {
+    const remaining = pageH - footerReserve - currentY;
+    if (needed <= remaining) return currentY;
     doc.addPage();
-    y = topY;
-    return y;
+    return topY;
   };
 
   // Coleta entradas do sumário: { label, page, y } — atualizado em cada sectionTitle
