@@ -184,20 +184,18 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   doc.addPage();
   let y = margin + 20;
 
-  // Quebra de página robusta:
-  // - footerReserve garante que conteúdo nunca invada o footer
-  // - SEMPRE quebra se não couber (cards grandes que excedem usableH são raros;
-  //   neste caso desenha do topo e aceita um pequeno overflow controlado)
-  // - Retorna o novo y para que primitivos sincronizem após break
+  // Quebra de página robusta — função PURA:
+  // - Recebe o y corrente (currentY) e retorna o y após eventual page-break.
+  // - Se há espaço suficiente, retorna o próprio currentY (NÃO o y do closure!).
+  // - Se não cabe, adiciona página e retorna topY.
+  // O caller SEMPRE deve fazer: y = ensureSpace(needed, y)
   const footerReserve = 60;
   const topY = margin + 20;
-  const usableH = pageH - footerReserve - topY;
-  const ensureSpace = (needed: number): number => {
-    const remaining = pageH - footerReserve - y;
-    if (needed <= remaining) return y;
+  const ensureSpace = (needed: number, currentY: number): number => {
+    const remaining = pageH - footerReserve - currentY;
+    if (needed <= remaining) return currentY;
     doc.addPage();
-    y = topY;
-    return y;
+    return topY;
   };
 
   // Coleta entradas do sumário: { label, page, y } — atualizado em cada sectionTitle
@@ -224,7 +222,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 2. SCORE + CLASSIFICAÇÃO ----------
-  ensureSpace(120);
+  y = ensureSpace(120, y);
   recordToc("Maturidade do negócio");
   sectionEyebrow(doc, "MATURIDADE DO NEGÓCIO", margin, y);
   y += 14;
@@ -240,7 +238,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 2b. RADAR DE MATURIDADE POR ÁREA ----------
   if (payload.maturidade_areas) {
-    y = ensureSpace(230);
+    y = ensureSpace(230, y);
     recordToc("Maturidade por área");
     sectionEyebrow(doc, "MATURIDADE POR ÁREA", margin, y);
     y += 14;
@@ -249,7 +247,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 3. RESUMO EXECUTIVO ----------
-  ensureSpace(100);
+  y = ensureSpace(100, y);
   recordToc("Resumo executivo");
   sectionTitle(doc, "Resumo executivo", margin, y);
   y += 24;
@@ -266,7 +264,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 4. DIAGNÓSTICO NARRATIVO ----------
   if (payload.diagnostico_narrativo) {
-    ensureSpace(100);
+    y = ensureSpace(100, y);
     recordToc("Análise estratégica");
     sectionTitle(doc, "Análise estratégica", margin, y);
     y += 24;
@@ -284,7 +282,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 5. SWOT (2x2) ----------
   if (payload.swot) {
-    ensureSpace(40);
+    y = ensureSpace(40, y);
     recordToc("Análise SWOT");
     sectionTitle(doc, "Análise SWOT", margin, y);
     y += 24;
@@ -294,7 +292,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 6. GARGALOS PRINCIPAIS ----------
   if (payload.gargalos_principais && payload.gargalos_principais.length > 0) {
-    ensureSpace(60);
+    y = ensureSpace(60, y);
     recordToc("Gargalos principais");
     sectionTitle(doc, "Gargalos principais (causa-raiz)", margin, y);
     y += 24;
@@ -307,7 +305,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 7. RECOMENDAÇÕES ----------
   if (recomendacoes.length > 0) {
-    ensureSpace(60);
+    y = ensureSpace(60, y);
     recordToc(`Recomendações (${recomendacoes.length})`);
     sectionTitle(doc, `Recomendações priorizadas (${recomendacoes.length})`, margin, y);
     y += 24;
@@ -319,7 +317,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 8. ROADMAP TIMELINE ----------
   if (payload.roadmap) {
-    ensureSpace(80);
+    y = ensureSpace(80, y);
     recordToc("Roadmap estratégico");
     sectionTitle(doc, "Roadmap estratégico", margin, y);
     y += 24;
@@ -329,7 +327,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 9. KPIs ----------
   if (payload.kpis_monitorar && payload.kpis_monitorar.length > 0) {
-    ensureSpace(80);
+    y = ensureSpace(80, y);
     recordToc("KPIs para monitorar");
     sectionTitle(doc, "KPIs para monitorar", margin, y);
     y += 24;
@@ -339,7 +337,7 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
 
   // ---------- 10. RISCOS ----------
   if (payload.riscos && payload.riscos.length > 0) {
-    ensureSpace(80);
+    y = ensureSpace(80, y);
     recordToc("Riscos & mitigação");
     sectionTitle(doc, "Riscos & mitigação", margin, y);
     y += 24;
@@ -746,7 +744,7 @@ function paragraph(
   y: number,
   width: number,
   opts: { size?: number; bold?: boolean; color?: [number, number, number]; lineHeight?: number },
-  ensureSpace?: (n: number) => number,
+  ensureSpace?: (n: number, currentY: number) => number,
 ): number {
   const size = opts.size ?? 10;
   const lineHeight = opts.lineHeight ?? size + 3;
@@ -759,7 +757,7 @@ function paragraph(
   blocks.forEach((block, idx) => {
     const lines = doc.splitTextToSize(block.trim(), width) as string[];
     for (const line of lines) {
-      if (ensureSpace) yy = ensureSpace(lineHeight);
+      if (ensureSpace) yy = ensureSpace(lineHeight, yy);
       doc.text(line, x, yy);
       yy += lineHeight;
     }
@@ -1018,7 +1016,7 @@ function drawSwot(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => number,
+  ensureSpace: (n: number, currentY: number) => number,
 ): number {
   const gap = 12;
   const cellW = (width - gap) / 2;
@@ -1070,7 +1068,7 @@ function drawSwot(
   const rowBotH = Math.max(cellHeight(cells[2].items), cellHeight(cells[3].items));
   const totalH = rowTopH + rowBotH + gap;
 
-  y = ensureSpace(totalH + 10);
+  y = ensureSpace(totalH + 10, y);
 
   const drawCell = (
     cx: number,
@@ -1123,7 +1121,7 @@ function drawGargalo(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => number,
+  ensureSpace: (n: number, currentY: number) => number,
 ): number {
   // Mede altura
   doc.setFontSize(10);
@@ -1133,7 +1131,7 @@ function drawGargalo(
   const h =
     36 + descLines.length * 12 + 18 + causaLines.length * 12 + 18 + impLines.length * 12 + 16;
 
-  y = ensureSpace(h + 8);
+  y = ensureSpace(h + 8, y);
 
   // Card background
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
@@ -1219,7 +1217,7 @@ function drawRecomendacao(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => number,
+  ensureSpace: (n: number, currentY: number) => number,
 ): number {
   const accent =
     r.prioridade === "alta" ? C.danger : r.prioridade === "media" ? C.warning : C.info;
@@ -1249,7 +1247,7 @@ function drawRecomendacao(
     metaH +
     32;
 
-  y = ensureSpace(h + 10);
+  y = ensureSpace(h + 10, y);
 
   // Card
   doc.setFillColor(255, 255, 255);
@@ -1394,7 +1392,7 @@ function drawRoadmap(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => number,
+  ensureSpace: (n: number, currentY: number) => number,
 ): number {
   const horizontes: Array<{ label: string; marcos: Marco[]; color: [number, number, number] }> = [
     { label: "90 DIAS — QUICK WINS", marcos: roadmap.dias_90 ?? [], color: C.success },
@@ -1407,7 +1405,7 @@ function drawRoadmap(
     if (h.marcos.length === 0) return;
 
     // Header do horizonte: reserva header + ao menos 1 marco curto
-    yy = ensureSpace(28 + 60);
+    yy = ensureSpace(28 + 60, yy);
 
     doc.setFillColor(h.color[0], h.color[1], h.color[2]);
     doc.roundedRect(x, yy, width, 22, 4, 4, "F");
@@ -1425,7 +1423,7 @@ function drawRoadmap(
       const descLines = doc.splitTextToSize(safe(m.descricao, "—"), width - 50) as string[];
       const marcoH = tituloLines.length * 12 + descLines.length * 11 + (m.kpi ? 14 : 0) + 18;
 
-      yy = ensureSpace(marcoH);
+      yy = ensureSpace(marcoH, yy);
 
       doc.setFillColor(h.color[0], h.color[1], h.color[2]);
       doc.circle(x + 8, yy + 4, 3, "F");
@@ -1477,14 +1475,14 @@ function drawKpisTable(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => number,
+  ensureSpace: (n: number, currentY: number) => number,
 ): number {
   // Colunas: Nome | Atual | Meta | Como medir
   const colW = [width * 0.28, width * 0.18, width * 0.18, width * 0.36];
   const headerH = 26;
   const rowMinH = 30;
 
-  y = ensureSpace(headerH + rowMinH * 2 + 20);
+  y = ensureSpace(headerH + rowMinH * 2 + 20, y);
 
   // Header
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
@@ -1510,7 +1508,7 @@ function drawKpisTable(
     const lineCount = Math.max(nomeLines.length, atualLines.length, metaLines.length, medirLines.length);
     const rowH = Math.max(rowMinH, lineCount * 11 + 12);
 
-    yy = ensureSpace(rowH + 4);
+    yy = ensureSpace(rowH + 4, yy);
 
     // Zebra
     if (idx % 2 === 0) {
@@ -1559,7 +1557,7 @@ function drawRisco(
   x: number,
   y: number,
   width: number,
-  ensureSpace: (n: number) => number,
+  ensureSpace: (n: number, currentY: number) => number,
 ): number {
   doc.setFontSize(10);
   const tituloLines = doc.splitTextToSize(safe(r.titulo, "—"), width - 32) as string[];
@@ -1567,7 +1565,7 @@ function drawRisco(
   const mitLines = doc.splitTextToSize(safe(r.mitigacao, "—"), width - 32) as string[];
   const h = tituloLines.length * 13 + 18 + mitLines.length * 11 + 28;
 
-  y = ensureSpace(h + 4);
+  y = ensureSpace(h + 4, y);
 
   // Card
   doc.setFillColor(C.surface[0], C.surface[1], C.surface[2]);
