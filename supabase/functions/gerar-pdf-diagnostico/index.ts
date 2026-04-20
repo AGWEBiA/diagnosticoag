@@ -281,8 +281,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 5. SWOT (2x2) ----------
+  // Reserva: título(30) + grid 2x2 inteiro (~280pt) — evita título órfão e quebra no meio do grid
   if (payload.swot) {
-    y = ensureSpace(40, y);
+    y = ensureSpace(320, y);
     recordToc("Análise SWOT");
     sectionTitle(doc, "Análise SWOT", margin, y);
     y += 24;
@@ -291,8 +292,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 6. GARGALOS PRINCIPAIS ----------
+  // Reserva: título(30) + 1º gargalo completo (~200pt)
   if (payload.gargalos_principais && payload.gargalos_principais.length > 0) {
-    y = ensureSpace(60, y);
+    y = ensureSpace(230, y);
     recordToc("Gargalos principais");
     sectionTitle(doc, "Gargalos principais (causa-raiz)", margin, y);
     y += 24;
@@ -304,8 +306,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 7. RECOMENDAÇÕES ----------
+  // Reserva: título(30) + 1ª recomendação (~200pt)
   if (recomendacoes.length > 0) {
-    y = ensureSpace(60, y);
+    y = ensureSpace(230, y);
     recordToc(`Recomendações (${recomendacoes.length})`);
     sectionTitle(doc, `Recomendações priorizadas (${recomendacoes.length})`, margin, y);
     y += 24;
@@ -316,8 +319,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 8. ROADMAP TIMELINE ----------
+  // Reserva: título(30) + header de fase (28) + 1 marco mínimo (~80pt)
   if (payload.roadmap) {
-    y = ensureSpace(80, y);
+    y = ensureSpace(170, y);
     recordToc("Roadmap estratégico");
     sectionTitle(doc, "Roadmap estratégico", margin, y);
     y += 24;
@@ -326,8 +330,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 9. KPIs ----------
+  // Reserva: título(30) + cabeçalho tabela(26) + 2 linhas (~80pt) — força tabela completa começar com título
   if (payload.kpis_monitorar && payload.kpis_monitorar.length > 0) {
-    y = ensureSpace(80, y);
+    y = ensureSpace(160, y);
     recordToc("KPIs para monitorar");
     sectionTitle(doc, "KPIs para monitorar", margin, y);
     y += 24;
@@ -336,8 +341,9 @@ function buildPdf(diag: DiagDataPdf): Uint8Array {
   }
 
   // ---------- 10. RISCOS ----------
+  // Reserva: título(30) + 1º risco completo (~140pt)
   if (payload.riscos && payload.riscos.length > 0) {
-    y = ensureSpace(80, y);
+    y = ensureSpace(180, y);
     recordToc("Riscos & mitigação");
     sectionTitle(doc, "Riscos & mitigação", margin, y);
     y += 24;
