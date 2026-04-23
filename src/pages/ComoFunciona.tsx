@@ -115,8 +115,8 @@ const pilares = [
 
 const ComoFunciona = () => {
   const { user } = useAuth();
-  const ctaTo = user ? '/diagnostico' : '/signup';
-  const ctaLabel = user ? 'Iniciar meu diagnóstico' : 'Criar conta';
+  const ctaTo = user ? '/diagnostico' : '/login';
+  const ctaLabel = user ? 'Iniciar meu diagnóstico' : 'Entrar';
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,16 +149,11 @@ const ComoFunciona = () => {
                 <UserAvatarMenu />
               </>
             ) : (
-              <>
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/login">
-                    <LogIn className="mr-2 h-4 w-4" /> Entrar
-                  </Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link to="/signup">Criar conta</Link>
-                </Button>
-              </>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/login">
+                  <LogIn className="mr-2 h-4 w-4" /> Entrar
+                </Link>
+              </Button>
             )}
           </nav>
         </div>
