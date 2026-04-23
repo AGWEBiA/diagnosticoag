@@ -95,7 +95,7 @@ const Landing = () => {
         <title>Diagnóstico de Negócios Digitais | Anderson Gomes</title>
         <meta
           name="description"
-          content="Descubra os GARGALOS REAIS do seu negócio digital e saiba EXATAMENTE o que fazer para crescer. Análise com IA Proprietária + Equipe de Especialistas + 10+ anos gerenciando +R$ 40 milhões em resultados."
+          content="Descubra exatamente onde seu negócio digital está travado e o que impede ele de crescer. Análise com IA Proprietária + Equipe de Especialistas + 10+ anos gerenciando +R$ 40 milhões em resultados."
         />
         <link rel="canonical" href={`${window.location.origin}/`} />
         <script type="application/ld+json">
@@ -172,14 +172,13 @@ const Landing = () => {
                 Análise estratégica com IA Proprietária + Equipe de Especialistas
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-                Descubra os{' '}
+                Descubra exatamente{' '}
                 <span className="bg-gradient-to-br from-primary to-primary-glow bg-clip-text text-transparent">
-                  GARGALOS REAIS
-                </span>{' '}
-                do seu negócio digital
+                  onde seu negócio digital está travado
+                </span>
               </h1>
               <p className="mt-6 text-xl font-medium text-muted-foreground md:text-2xl">
-                E saiba <span className="font-semibold text-foreground">EXATAMENTE</span> o que fazer para crescer
+                ...e o que <span className="font-semibold text-foreground">impede ele de crescer</span>.
               </p>
               <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
                 Análise profunda com IA Proprietária + Equipe de Especialistas + estratégia personalizada baseada em{' '}
@@ -238,21 +237,29 @@ const Landing = () => {
                   E o pior? Você está tentando resolver isso sozinho, testando estratégias aleatórias, gastando
                   tempo e dinheiro sem saber se está no caminho certo.
                 </p>
-                <p className="text-foreground">
-                  Depois de 10+ anos no mercado, gerenciando mais de <strong>R$ 40 milhões</strong> em resultados
-                  digitais e atendendo empresas como SENAI, Coca-Cola e Grupo Jovem Pan, descobri algo que muda tudo:
+              </div>
+
+              {/* Conector com autoridade */}
+              <p className="mt-8 text-lg text-foreground">
+                Depois de 10+ anos no mercado, gerenciando mais de <strong>R$ 40 milhões</strong> em resultados
+                digitais e atendendo empresas como SENAI, Coca-Cola e Grupo Jovem Pan, descobri o porquê dos
+                negócios digitais não crescerem — e é algo que você também faz errado hoje.
+              </p>
+
+              {/* Destaque */}
+              <blockquote className="relative my-8 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-6 shadow-elevated md:p-8">
+                <div className="absolute left-0 top-0 h-full w-1 bg-gradient-primary" />
+                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
+                <p className="text-lg font-semibold leading-relaxed text-foreground md:text-xl">
+                  A maioria dos negócios digitais falha não porque a estratégia é ruim, mas porque ninguém fez
+                  um <span className="text-primary">DIAGNÓSTICO PROFUNDO</span> antes de agir.
                 </p>
-                <blockquote className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-6 shadow-elevated md:p-8">
-                  <div className="absolute left-0 top-0 h-full w-1 bg-gradient-primary" />
-                  <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
-                  <p className="text-lg font-semibold leading-relaxed text-foreground md:text-xl">
-                    A maioria dos negócios digitais falha não porque a estratégia é ruim, mas porque ninguém fez
-                    um <span className="text-primary">DIAGNÓSTICO PROFUNDO</span> antes de agir.
-                  </p>
-                </blockquote>
+              </blockquote>
+
+              <div className="space-y-4 text-lg text-muted-foreground">
                 <p>
-                  É como tentar consertar um carro sem saber o que está quebrado. Você pode gastar uma fortuna em
-                  peças e nunca resolver o problema.
+                  Você já tentou consertar um carro sem saber o que está quebrado? Se fizer isso, você vai gastar
+                  uma fortuna em peças e nunca resolver o problema.
                 </p>
                 <p className="text-foreground">
                   Mas se você souber EXATAMENTE qual é o problema, tiver um PLANO CLARO de ação e souber PARA
@@ -333,7 +340,7 @@ const Landing = () => {
 
                   <div className="mt-6">
                     <Button asChild size="lg" variant="outline" className="w-full">
-                      <Link to={ctaHref}>👉 Contratar Diagnóstico Rápido</Link>
+                      <Link to={ctaHref}>Contratar Diagnóstico Rápido</Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -398,7 +405,7 @@ const Landing = () => {
 
                   <div className="mt-6">
                     <Button asChild size="lg" className="w-full">
-                      <Link to={ctaHref}>👉 Contratar Diagnóstico Completo</Link>
+                      <Link to={ctaHref}>Contratar Diagnóstico Completo</Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -407,7 +414,7 @@ const Landing = () => {
 
             {/* Comparativo */}
             <div className="mx-auto mt-16 max-w-4xl">
-              <h3 className="mb-6 text-center text-2xl font-bold">Comparação lado a lado</h3>
+              <h3 className="mb-6 text-center text-2xl font-bold">Compare aqui os dois planos de diagnóstico e veja o que melhor funciona pra você</h3>
               <div className="overflow-hidden rounded-lg border bg-card">
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50">
