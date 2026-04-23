@@ -87,7 +87,7 @@ const TESTIMONIALS = [
 
 const Landing = () => {
   const { user } = useAuth();
-  const ctaHref = user ? '/comprar' : '/signup';
+  const ctaHref = '/comprar';
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,14 +131,9 @@ const Landing = () => {
                 <UserAvatarMenu />
               </>
             ) : (
-              <>
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/login"><LogIn className="mr-2 h-4 w-4" /> Entrar</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link to="/signup">Criar conta</Link>
-                </Button>
-              </>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/login"><LogIn className="mr-2 h-4 w-4" /> Entrar</Link>
+              </Button>
             )}
           </nav>
         </div>
@@ -787,7 +782,6 @@ const Landing = () => {
           <div className="flex gap-4">
             <Link to="/como-funciona" className="hover:text-foreground">Como funciona</Link>
             <Link to="/login" className="hover:text-foreground">Entrar</Link>
-            <Link to="/signup" className="hover:text-foreground">Criar conta</Link>
           </div>
         </div>
       </footer>
