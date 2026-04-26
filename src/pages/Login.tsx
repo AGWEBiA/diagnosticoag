@@ -85,12 +85,6 @@ const Login = () => {
               Entrar
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Não tem conta?{' '}
-            <Link to="/signup" className="text-primary hover:underline">
-              Cadastre-se
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </div>
