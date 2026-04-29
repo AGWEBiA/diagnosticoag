@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { LogOut, User as UserIcon, LayoutDashboard, ClipboardList } from 'lucide-react';
+import { LogOut, User as UserIcon, LayoutDashboard, ClipboardList, Home } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -54,6 +54,11 @@ export const UserAvatarMenu = ({ size = 32, compact = false }: Props) => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/inicio">
+            <Home className="mr-2 h-4 w-4" /> Início
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/perfil">
             <UserIcon className="mr-2 h-4 w-4" /> Meu perfil
