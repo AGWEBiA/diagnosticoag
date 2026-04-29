@@ -701,7 +701,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
-      diagnostico_status: "rascunho" | "em_analise" | "concluido" | "arquivado"
+      diagnostico_status:
+        | "rascunho"
+        | "em_analise"
+        | "concluido"
+        | "arquivado"
+        | "aguardando_aprovacao"
+        | "liberado"
+        | "reprovado"
       knowledge_status: "pendente" | "aprovado" | "rejeitado"
     }
     CompositeTypes: {
@@ -831,7 +838,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
-      diagnostico_status: ["rascunho", "em_analise", "concluido", "arquivado"],
+      diagnostico_status: [
+        "rascunho",
+        "em_analise",
+        "concluido",
+        "arquivado",
+        "aguardando_aprovacao",
+        "liberado",
+        "reprovado",
+      ],
       knowledge_status: ["pendente", "aprovado", "rejeitado"],
     },
   },
