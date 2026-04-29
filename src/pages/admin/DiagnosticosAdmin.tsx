@@ -532,8 +532,44 @@ const DiagnosticosAdmin = () => {
               </Button>
               </>
             )}
+            {viewing && viewing.status !== 'bloqueado' && viewing.status !== 'rascunho' && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => setBloquearOpen(true)}
+                disabled={acting !== null}
+              >
+                <Lock className="mr-2 h-4 w-4" />
+                Bloquear acesso
+              </Button>
+            )}
+            {viewing && viewing.status === 'bloqueado' && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleDesbloquear}
+                disabled={acting !== null}
+              >
+                {acting === 'desbloquear' ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Unlock className="mr-2 h-4 w-4" />
+                )}
+                Restaurar acesso
+              </Button>
+            )}
           </div>
           </div>
+          {viewing?.status === 'bloqueado' && viewing.bloqueio_motivo && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs">
+              <strong>Acesso bloqueado:</strong> {viewing.bloqueio_motivo}
+              {viewing.bloqueado_em && (
+                <span className="text-muted-foreground">
+                  {' '}— {new Date(viewing.bloqueado_em).toLocaleString('pt-BR')}
+                </span>
+              )}
+            </div>
+          )}
           {viewing?.status === 'aguardando_aprovacao' && (
             <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
               {viewing.aprovado_em ? (
