@@ -25,10 +25,12 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { DiagnosticoChat } from '@/components/admin/DiagnosticoChat';
 import { DiagnosticoDetalhes, type DiagnosticoAnalise } from '@/components/admin/DiagnosticoDetalhes';
 import {
