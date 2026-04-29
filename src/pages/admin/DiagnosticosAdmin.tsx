@@ -465,7 +465,17 @@ const DiagnosticosAdmin = () => {
               </>
             )}
             {viewing && (viewing.status === 'liberado' || viewing.status === 'concluido') && (
-              <Button size="sm" variant="outline" asChild>
+              <>
+                <Input
+                  type="tel"
+                  placeholder="WhatsApp (opcional)"
+                  className="h-9 w-[180px]"
+                  value={whatsapp[viewing.user_id] ?? ''}
+                  onChange={(e) =>
+                    setWhatsapp((prev) => ({ ...prev, [viewing.user_id]: e.target.value }))
+                  }
+                />
+                <Button size="sm" variant="outline" asChild>
                 <a
                   href={buildWhatsappLink(viewing)}
                   target="_blank"
@@ -475,6 +485,7 @@ const DiagnosticosAdmin = () => {
                   WhatsApp
                 </a>
               </Button>
+              </>
             )}
           </div>
           </div>
@@ -525,6 +536,39 @@ const DiagnosticosAdmin = () => {
               </pre>
             </TabsContent>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={reprovarOpen} onOpenChange={setReprovarOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reprovar diagnóstico</DialogTitle>
+            <DialogDescription>
+              Informe o motivo da reprovação (mín. 5 caracteres). O diagnóstico não será
+              liberado ao cliente.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            rows={4}
+            value={motivoReprovar}
+            onChange={(e) => setMotivoReprovar(e.target.value)}
+            placeholder="Ex.: Inconsistências nas respostas, dados insuficientes..."
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReprovarOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReprovar}
+              disabled={acting === 'reprovar'}
+            >
+              {acting === 'reprovar' && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Confirmar reprovação
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
