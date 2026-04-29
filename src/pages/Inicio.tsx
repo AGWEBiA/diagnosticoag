@@ -67,6 +67,17 @@ const STATUS_VARIANT: Record<DiagnosticoResumo['status'], 'default' | 'secondary
   arquivado: 'outline',
 };
 
+function previsaoTexto(d: { enviado_em: string | null; sla_horas: number | null }): string {
+  if (!d.enviado_em) return '';
+  const previsao = new Date(d.enviado_em).getTime() + (d.sla_horas ?? 24) * 3600 * 1000;
+  const diffMs = previsao - Date.now();
+  if (diffMs <= 0) return 'Liberação prevista a qualquer momento.';
+  const horas = Math.ceil(diffMs / 3600000);
+  return horas <= 1
+    ? 'Liberação prevista em menos de 1h.'
+    : `Liberação prevista em até ${horas}h.`;
+}
+
 const Inicio = () => {
   const { user } = useAuth();
   const { data: profile } = useUserProfile();
