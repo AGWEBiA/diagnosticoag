@@ -535,7 +535,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (diag.status === "concluido") {
+    if (
+      diag.status === "concluido" ||
+      diag.status === "aguardando_aprovacao" ||
+      diag.status === "liberado"
+    ) {
       return new Response(
         JSON.stringify({ ok: true, already: true, diagnostico_id: diag.id }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -652,13 +656,13 @@ Produza um diagnóstico estratégico PROFUNDO e DETALHADO, no nível de uma cons
     const { error: updErr } = await supabaseAdmin
       .from("diagnosticos")
       .update({
-        status: "concluido",
+        status: "aguardando_aprovacao",
         resumo_executivo: analise.resumo_executivo,
         recomendacoes: recomendacoesPayload,
+        analise: { resumo_executivo: analise.resumo_executivo, ...recomendacoesPayload },
         score: Math.round(analise.score),
         confianca_score: analise.confianca,
         rag_contexto: ragContexto,
-        concluido_em: new Date().toISOString(),
       })
       .eq("id", diagnosticoId);
 
