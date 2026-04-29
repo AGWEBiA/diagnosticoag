@@ -12,6 +12,7 @@ import ComoFunciona from "./pages/ComoFunciona";
 import Inicio from "./pages/Inicio";
 import Perfil from "./pages/Perfil";
 import Diagnostico from "./pages/Diagnostico";
+import DiagnosticoPremium from "./pages/DiagnosticoPremium";
 import Agendar from "./pages/Agendar";
 import Comprar from "./pages/Comprar";
 import Login from "./pages/Login.tsx";
@@ -68,6 +69,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Diagnostico />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/diagnostico/:id"
+                element={
+                  <ProtectedRoute>
+                    <DiagnosticoPremium />
                   </ProtectedRoute>
                 }
               />
