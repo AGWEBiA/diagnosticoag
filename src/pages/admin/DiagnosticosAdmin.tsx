@@ -39,31 +39,48 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Eye, FileDown, Loader2 } from 'lucide-react';
+import { Eye, FileDown, Loader2, Check, X, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const PAGE_SIZE = 10;
 
-type StatusFiltro = 'todos' | 'rascunho' | 'em_analise' | 'concluido' | 'arquivado';
+type DiagStatus =
+  | 'rascunho'
+  | 'em_analise'
+  | 'aguardando_aprovacao'
+  | 'liberado'
+  | 'reprovado'
+  | 'concluido'
+  | 'arquivado';
+type StatusFiltro = 'todos' | DiagStatus;
 
 interface DiagRow {
   id: string;
   user_id: string;
   empresa_nome: string | null;
   segmento: string | null;
-  status: 'rascunho' | 'em_analise' | 'concluido' | 'arquivado';
+  status: DiagStatus;
   score: number | null;
   created_at: string;
   updated_at: string;
   resumo_executivo: string | null;
   recomendacoes: unknown;
   respostas: unknown;
+  analise: unknown;
+  enviado_em: string | null;
+  aprovado_em: string | null;
+  liberado_em: string | null;
+  sla_horas: number | null;
+  notas_admin: string | null;
 }
 
-const statusVariant: Record<DiagRow['status'], 'default' | 'secondary' | 'outline' | 'destructive'> = {
+const statusVariant: Record<DiagStatus, 'default' | 'secondary' | 'outline' | 'destructive'> = {
   concluido: 'default',
+  liberado: 'default',
   em_analise: 'secondary',
+  aguardando_aprovacao: 'secondary',
   rascunho: 'outline',
+  reprovado: 'destructive',
   arquivado: 'destructive',
 };
 
@@ -75,6 +92,10 @@ const DiagnosticosAdmin = () => {
   const [viewing, setViewing] = useState<DiagRow | null>(null);
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [acting, setActing] = useState<'aprovar' | 'reprovar' | null>(null);
+  const [motivoReprovar, setMotivoReprovar] = useState('');
+  const [reprovarOpen, setReprovarOpen] = useState(false);
+  const [whatsapp, setWhatsapp] = useState<Record<string, string>>({});
 
   const handleGeneratePdf = async () => {
     if (!viewing) return;
@@ -129,7 +150,7 @@ const DiagnosticosAdmin = () => {
       let q = supabase
         .from('diagnosticos')
         .select(
-          'id, user_id, empresa_nome, segmento, status, score, created_at, updated_at, resumo_executivo, recomendacoes, respostas',
+          'id, user_id, empresa_nome, segmento, status, score, created_at, updated_at, resumo_executivo, recomendacoes, respostas, analise, enviado_em, aprovado_em, liberado_em, sla_horas, notas_admin',
           { count: 'exact' }
         )
         .order('updated_at', { ascending: false })
@@ -169,7 +190,79 @@ const DiagnosticosAdmin = () => {
 
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_SIZE));
 
-  const analise = (viewing?.recomendacoes ?? null) as DiagnosticoAnalise | null;
+  const analise = (viewing?.analise ?? viewing?.recomendacoes ?? null) as DiagnosticoAnalise | null;
+
+  const refetch = async () => {
+    // força recarga
+    setViewing(null);
+    await new Promise((r) => setTimeout(r, 50));
+    window.location.reload();
+  };
+
+  const handleAprovar = async () => {
+    if (!viewing) return;
+    setActing('aprovar');
+    const { error } = await supabase.rpc('aprovar_diagnostico', {
+      _diagnostico_id: viewing.id,
+      _notas: null,
+    });
+    setActing(null);
+    if (error) {
+      toast({ title: 'Erro ao aprovar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({
+      title: 'Diagnóstico aprovado',
+      description: 'Será liberado automaticamente após o SLA mínimo.',
+    });
+    await refetch();
+  };
+
+  const handleReprovar = async () => {
+    if (!viewing) return;
+    if (motivoReprovar.trim().length < 5) {
+      toast({
+        title: 'Motivo obrigatório',
+        description: 'Mínimo 5 caracteres.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setActing('reprovar');
+    const { error } = await supabase.rpc('reprovar_diagnostico', {
+      _diagnostico_id: viewing.id,
+      _motivo: motivoReprovar.trim(),
+    });
+    setActing(null);
+    if (error) {
+      toast({ title: 'Erro ao reprovar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Diagnóstico reprovado' });
+    setReprovarOpen(false);
+    setMotivoReprovar('');
+    await refetch();
+  };
+
+  const previsaoLiberacao = (d: DiagRow): string => {
+    if (!d.enviado_em) return '';
+    const previsao =
+      new Date(d.enviado_em).getTime() + (d.sla_horas ?? 24) * 3600 * 1000;
+    return new Date(previsao).toLocaleString('pt-BR');
+  };
+
+  const buildWhatsappLink = (d: DiagRow): string => {
+    const phone = (whatsapp[d.user_id] ?? '').replace(/\D/g, '');
+    const empresa = d.empresa_nome ?? 'sua empresa';
+    const url = `${window.location.origin}/diagnostico/${d.id}`;
+    const msg = encodeURIComponent(
+      `Olá! Seu diagnóstico estratégico para "${empresa}" está pronto. ` +
+        `Acesse: ${url}`,
+    );
+    return phone
+      ? `https://wa.me/${phone}?text=${msg}`
+      : `https://wa.me/?text=${msg}`;
+  };
 
   return (
     <div className="space-y-4">
@@ -196,6 +289,9 @@ const DiagnosticosAdmin = () => {
                 <SelectItem value="todos">Todos</SelectItem>
                 <SelectItem value="rascunho">Rascunho</SelectItem>
                 <SelectItem value="em_analise">Em análise</SelectItem>
+                <SelectItem value="aguardando_aprovacao">Aguardando aprovação</SelectItem>
+                <SelectItem value="liberado">Liberado</SelectItem>
+                <SelectItem value="reprovado">Reprovado</SelectItem>
                 <SelectItem value="concluido">Concluído</SelectItem>
                 <SelectItem value="arquivado">Arquivado</SelectItem>
               </SelectContent>
@@ -326,6 +422,7 @@ const DiagnosticosAdmin = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               size="sm"
               variant="outline"
@@ -339,7 +436,69 @@ const DiagnosticosAdmin = () => {
               )}
               Gerar PDF
             </Button>
+            {viewing?.status === 'aguardando_aprovacao' && !viewing.aprovado_em && (
+              <>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleAprovar}
+                  disabled={acting !== null}
+                >
+                  {acting === 'aprovar' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="mr-2 h-4 w-4" />
+                  )}
+                  Aprovar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setReprovarOpen(true)}
+                  disabled={acting !== null}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Reprovar
+                </Button>
+              </>
+            )}
+            {viewing && (viewing.status === 'liberado' || viewing.status === 'concluido') && (
+              <Button size="sm" variant="outline" asChild>
+                <a
+                  href={buildWhatsappLink(viewing)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  WhatsApp
+                </a>
+              </Button>
+            )}
           </div>
+          </div>
+          {viewing?.status === 'aguardando_aprovacao' && (
+            <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+              {viewing.aprovado_em ? (
+                <>
+                  ✓ Aprovado em{' '}
+                  <strong>{new Date(viewing.aprovado_em).toLocaleString('pt-BR')}</strong>.
+                  Liberação automática prevista para{' '}
+                  <strong>{previsaoLiberacao(viewing)}</strong>.
+                </>
+              ) : (
+                <>
+                  Aguardando sua revisão. Após aprovar, o diagnóstico só será liberado ao
+                  cliente em <strong>{previsaoLiberacao(viewing)}</strong> (SLA de{' '}
+                  {viewing.sla_horas ?? 24}h desde o envio).
+                </>
+              )}
+            </div>
+          )}
+          {viewing?.status === 'reprovado' && viewing.notas_admin && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs">
+              <strong>Reprovado:</strong> {viewing.notas_admin}
+            </div>
+          )}
           <Tabs defaultValue="analise" className="w-full">
             <TabsList>
               <TabsTrigger value="analise">Análise completa</TabsTrigger>
