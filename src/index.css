@@ -159,4 +159,31 @@ All colors MUST be HSL.
     transform: translateY(-2px);
     box-shadow: var(--shadow-elevated);
   }
+
+  /* ===== Escala única de spacing de seções (landing/marketing) =====
+     Use SEMPRE estas classes em <section> para garantir ritmo uniforme.
+     - .section          → ritmo padrão entre blocos densos
+     - .section-tight    → para seções curtas (CTA, urgência)
+     - .section-hero     → primeira dobra
+     Mobile mais compacto, desktop mais arejado. */
+  .section {
+    @apply py-10 md:py-16;
+  }
+  .section-tight {
+    @apply py-8 md:py-12;
+  }
+  .section-hero {
+    @apply py-10 md:py-16;
+  }
+
+  /* Espaçamentos internos padronizados dentro de cada seção */
+  .section-header-gap {
+    @apply mt-3;
+  }
+  .section-body-gap {
+    @apply mt-8 md:mt-12;
+  }
+  .section-block-gap {
+    @apply mt-6 md:mt-8;
+  }
 }
