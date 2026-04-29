@@ -17,7 +17,7 @@ const Login = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/inicio';
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
