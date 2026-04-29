@@ -208,19 +208,30 @@ const DiagnosticoPremium = () => {
             </Link>
           </Button>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleDownloadPdf}
-              disabled={generatingPdf}
-            >
-              {generatingPdf ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <FileDown className="mr-2 h-4 w-4" />
-              )}
-              Baixar PDF
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleDownloadPdf}
+                      disabled={generatingPdf || !pdfDisponivel}
+                    >
+                      {generatingPdf ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : pdfDisponivel ? (
+                        <FileDown className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Lock className="mr-2 h-4 w-4" />
+                      )}
+                      {pdfDisponivel ? 'Baixar PDF' : `PDF em ${diasRestantes}d`}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{pdfTooltipMsg}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <UserAvatarMenu />
           </div>
         </div>
@@ -291,14 +302,31 @@ const DiagnosticoPremium = () => {
             </div>
 
             <div className="flex flex-col items-center justify-center gap-3 pt-4 sm:flex-row">
-              <Button size="lg" onClick={handleDownloadPdf} disabled={generatingPdf}>
-                {generatingPdf ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <FileDown className="mr-2 h-4 w-4" />
-                )}
-                Baixar relatório em PDF
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button
+                        size="lg"
+                        onClick={handleDownloadPdf}
+                        disabled={generatingPdf || !pdfDisponivel}
+                      >
+                        {generatingPdf ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : pdfDisponivel ? (
+                          <FileDown className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Lock className="mr-2 h-4 w-4" />
+                        )}
+                        {pdfDisponivel
+                          ? 'Baixar relatório em PDF'
+                          : `PDF disponível em ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}`}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{pdfTooltipMsg}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Button asChild size="lg" variant="outline">
                 <Link to={`/agendar/${data.id}`}>
                   <CalendarCheck className="mr-2 h-4 w-4" /> Agendar reunião estratégica
