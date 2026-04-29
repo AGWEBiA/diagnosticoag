@@ -48,6 +48,8 @@ interface Produto {
   creditos_concedidos: number;
   checkout_url: string | null;
   ativo: boolean;
+  sla_horas: number;
+  requer_aprovacao: boolean;
 }
 
 const EMPTY: Omit<Produto, 'id'> = {
@@ -61,6 +63,8 @@ const EMPTY: Omit<Produto, 'id'> = {
   creditos_concedidos: 1,
   checkout_url: '',
   ativo: true,
+  sla_horas: 24,
+  requer_aprovacao: true,
 };
 
 const ProdutosAdmin = () => {
@@ -107,6 +111,8 @@ const ProdutosAdmin = () => {
       creditos_concedidos: p.creditos_concedidos,
       checkout_url: p.checkout_url ?? '',
       ativo: p.ativo,
+      sla_horas: p.sla_horas ?? 24,
+      requer_aprovacao: p.requer_aprovacao ?? true,
     });
     setPrecoReais(p.preco_centavos != null ? (p.preco_centavos / 100).toFixed(2) : '');
     setOpen(true);
@@ -134,6 +140,8 @@ const ProdutosAdmin = () => {
       creditos_concedidos: form.creditos_concedidos,
       checkout_url: form.checkout_url?.trim() || null,
       ativo: form.ativo,
+      sla_horas: Math.max(0, form.sla_horas),
+      requer_aprovacao: form.requer_aprovacao,
     };
 
     const { error } = editing
@@ -349,6 +357,37 @@ const ProdutosAdmin = () => {
                 <p className="text-xs text-muted-foreground">Produtos inativos não aparecem em /comprar.</p>
               </div>
               <Switch checked={form.ativo} onCheckedChange={(v) => setForm({ ...form, ativo: v })} />
+            </div>
+
+            <div className="md:col-span-2 space-y-3 rounded-lg border p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="cursor-pointer">Exige aprovação manual</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Quando ativo, o diagnóstico só é liberado ao cliente após um admin aprovar.
+                  </p>
+                </div>
+                <Switch
+                  checked={form.requer_aprovacao}
+                  onCheckedChange={(v) => setForm({ ...form, requer_aprovacao: v })}
+                />
+              </div>
+              <div>
+                <Label>SLA mínimo (horas)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.sla_horas}
+                  onChange={(e) =>
+                    setForm({ ...form, sla_horas: Math.max(0, Number(e.target.value)) })
+                  }
+                  placeholder="24"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Tempo mínimo entre o envio do formulário e a liberação ao cliente.
+                  Use 0 para liberação imediata após aprovação.
+                </p>
+              </div>
             </div>
           </div>
 
