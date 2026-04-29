@@ -120,40 +120,67 @@ export type Database = {
       }
       creditos_diagnostico: {
         Row: {
+          comissao_afiliado_centavos: number | null
+          comissao_coprodutor_centavos: number | null
+          comissao_produtor_centavos: number | null
           consumido_em: string | null
           created_at: string
           diagnostico_id: string | null
           email_comprador: string | null
+          estornado_em: string | null
+          estorno_motivo: string | null
           id: string
           metadata: Json | null
+          moeda: string | null
           origem: string
           produto_id: string | null
+          taxa_gateway_centavos: number | null
           transacao_externa_id: string | null
           user_id: string
+          valor_bruto_centavos: number | null
+          valor_liquido_centavos: number | null
         }
         Insert: {
+          comissao_afiliado_centavos?: number | null
+          comissao_coprodutor_centavos?: number | null
+          comissao_produtor_centavos?: number | null
           consumido_em?: string | null
           created_at?: string
           diagnostico_id?: string | null
           email_comprador?: string | null
+          estornado_em?: string | null
+          estorno_motivo?: string | null
           id?: string
           metadata?: Json | null
+          moeda?: string | null
           origem: string
           produto_id?: string | null
+          taxa_gateway_centavos?: number | null
           transacao_externa_id?: string | null
           user_id: string
+          valor_bruto_centavos?: number | null
+          valor_liquido_centavos?: number | null
         }
         Update: {
+          comissao_afiliado_centavos?: number | null
+          comissao_coprodutor_centavos?: number | null
+          comissao_produtor_centavos?: number | null
           consumido_em?: string | null
           created_at?: string
           diagnostico_id?: string | null
           email_comprador?: string | null
+          estornado_em?: string | null
+          estorno_motivo?: string | null
           id?: string
           metadata?: Json | null
+          moeda?: string | null
           origem?: string
           produto_id?: string | null
+          taxa_gateway_centavos?: number | null
           transacao_externa_id?: string | null
           user_id?: string
+          valor_bruto_centavos?: number | null
+          valor_liquido_centavos?: number | null
         }
         Relationships: [
           {
@@ -197,6 +224,9 @@ export type Database = {
           analise: Json | null
           aprovado_em: string | null
           aprovado_por: string | null
+          bloqueado_em: string | null
+          bloqueado_por: string | null
+          bloqueio_motivo: string | null
           concluido_em: string | null
           confianca_score: number | null
           created_at: string
@@ -214,6 +244,9 @@ export type Database = {
           segmento: string | null
           sla_horas: number | null
           status: Database["public"]["Enums"]["diagnostico_status"]
+          status_anterior_bloqueio:
+            | Database["public"]["Enums"]["diagnostico_status"]
+            | null
           updated_at: string
           user_id: string
         }
@@ -221,6 +254,9 @@ export type Database = {
           analise?: Json | null
           aprovado_em?: string | null
           aprovado_por?: string | null
+          bloqueado_em?: string | null
+          bloqueado_por?: string | null
+          bloqueio_motivo?: string | null
           concluido_em?: string | null
           confianca_score?: number | null
           created_at?: string
@@ -238,6 +274,9 @@ export type Database = {
           segmento?: string | null
           sla_horas?: number | null
           status?: Database["public"]["Enums"]["diagnostico_status"]
+          status_anterior_bloqueio?:
+            | Database["public"]["Enums"]["diagnostico_status"]
+            | null
           updated_at?: string
           user_id: string
         }
@@ -245,6 +284,9 @@ export type Database = {
           analise?: Json | null
           aprovado_em?: string | null
           aprovado_por?: string | null
+          bloqueado_em?: string | null
+          bloqueado_por?: string | null
+          bloqueio_motivo?: string | null
           concluido_em?: string | null
           confianca_score?: number | null
           created_at?: string
@@ -262,6 +304,9 @@ export type Database = {
           segmento?: string | null
           sla_horas?: number | null
           status?: Database["public"]["Enums"]["diagnostico_status"]
+          status_anterior_bloqueio?:
+            | Database["public"]["Enums"]["diagnostico_status"]
+            | null
           updated_at?: string
           user_id?: string
         }
@@ -546,10 +591,12 @@ export type Database = {
           moeda: string | null
           nome: string
           oferta_externa_id: string | null
+          pdf_disponivel_apos_dias: number
           preco_centavos: number | null
           produto_externo_id: string
           requer_aprovacao: boolean
           sla_horas: number
+          taxa_gateway_pct: number
           updated_at: string
         }
         Insert: {
@@ -563,10 +610,12 @@ export type Database = {
           moeda?: string | null
           nome: string
           oferta_externa_id?: string | null
+          pdf_disponivel_apos_dias?: number
           preco_centavos?: number | null
           produto_externo_id: string
           requer_aprovacao?: boolean
           sla_horas?: number
+          taxa_gateway_pct?: number
           updated_at?: string
         }
         Update: {
@@ -580,10 +629,12 @@ export type Database = {
           moeda?: string | null
           nome?: string
           oferta_externa_id?: string | null
+          pdf_disponivel_apos_dias?: number
           preco_centavos?: number | null
           produto_externo_id?: string
           requer_aprovacao?: boolean
           sla_horas?: number
+          taxa_gateway_pct?: number
           updated_at?: string
         }
         Relationships: []
@@ -707,6 +758,14 @@ export type Database = {
         Args: { _diagnostico_id: string; _notas?: string }
         Returns: undefined
       }
+      bloquear_diagnostico: {
+        Args: { _diagnostico_id: string; _motivo: string }
+        Returns: undefined
+      }
+      bloquear_por_transacao_estornada: {
+        Args: { _motivo: string; _transacao_id: string }
+        Returns: number
+      }
       consumir_credito_diagnostico: {
         Args: { _diagnostico_id: string }
         Returns: boolean
@@ -715,6 +774,10 @@ export type Database = {
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      desbloquear_diagnostico: {
+        Args: { _diagnostico_id: string }
+        Returns: undefined
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
@@ -782,6 +845,7 @@ export type Database = {
         | "aguardando_aprovacao"
         | "liberado"
         | "reprovado"
+        | "bloqueado"
       knowledge_status: "pendente" | "aprovado" | "rejeitado"
     }
     CompositeTypes: {
@@ -919,6 +983,7 @@ export const Constants = {
         "aguardando_aprovacao",
         "liberado",
         "reprovado",
+        "bloqueado",
       ],
       knowledge_status: ["pendente", "aprovado", "rejeitado"],
     },
