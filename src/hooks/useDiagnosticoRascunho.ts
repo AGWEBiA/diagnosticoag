@@ -141,17 +141,20 @@ export function useDiagnosticoRascunho() {
     let requer_aprovacao = true;
     const { data: credito } = await supabase
       .from('creditos_diagnostico')
-      .select('produto_id, produtos_pagamento:produto_id(sla_horas, requer_aprovacao)')
+      .select('produto_id')
       .eq('diagnostico_id', state.id)
       .maybeSingle();
-    const produto = credito?.produtos_pagamento as
-      | { sla_horas?: number | null; requer_aprovacao?: boolean | null }
-      | null
-      | undefined;
-    if (produto) {
-      if (typeof produto.sla_horas === 'number') sla_horas = produto.sla_horas;
-      if (typeof produto.requer_aprovacao === 'boolean')
-        requer_aprovacao = produto.requer_aprovacao;
+    if (credito?.produto_id) {
+      const { data: produto } = await supabase
+        .from('produtos_pagamento')
+        .select('sla_horas, requer_aprovacao')
+        .eq('id', credito.produto_id)
+        .maybeSingle();
+      if (produto) {
+        if (typeof produto.sla_horas === 'number') sla_horas = produto.sla_horas;
+        if (typeof produto.requer_aprovacao === 'boolean')
+          requer_aprovacao = produto.requer_aprovacao;
+      }
     }
 
     const { error } = await supabase
