@@ -134,9 +134,37 @@ export function useDiagnosticoRascunho() {
   const finalizar = useCallback(async (): Promise<string | null> => {
     if (!user || !state.id) return null;
     setSaving(true);
+
+    // Busca SLA/requer_aprovacao a partir do produto vinculado ao crédito consumido
+    // (cai em defaults caso não exista produto: SLA 24h + aprovação obrigatória).
+    let sla_horas = 24;
+    let requer_aprovacao = true;
+    const { data: credito } = await supabase
+      .from('creditos_diagnostico')
+      .select('produto_id')
+      .eq('diagnostico_id', state.id)
+      .maybeSingle();
+    if (credito?.produto_id) {
+      const { data: produto } = await supabase
+        .from('produtos_pagamento')
+        .select('sla_horas, requer_aprovacao')
+        .eq('id', credito.produto_id)
+        .maybeSingle();
+      if (produto) {
+        if (typeof produto.sla_horas === 'number') sla_horas = produto.sla_horas;
+        if (typeof produto.requer_aprovacao === 'boolean')
+          requer_aprovacao = produto.requer_aprovacao;
+      }
+    }
+
     const { error } = await supabase
       .from('diagnosticos')
-      .update({ status: 'em_analise' })
+      .update({
+        status: 'em_analise',
+        enviado_em: new Date().toISOString(),
+        sla_horas,
+        requer_aprovacao,
+      })
       .eq('id', state.id);
 
     if (error) {

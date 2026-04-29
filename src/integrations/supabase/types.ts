@@ -165,51 +165,102 @@ export type Database = {
           },
         ]
       }
+      diagnostico_aprovacoes: {
+        Row: {
+          admin_id: string
+          created_at: string
+          decisao: string
+          diagnostico_id: string
+          id: string
+          motivo: string | null
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          decisao: string
+          diagnostico_id: string
+          id?: string
+          motivo?: string | null
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          decisao?: string
+          diagnostico_id?: string
+          id?: string
+          motivo?: string | null
+        }
+        Relationships: []
+      }
       diagnosticos: {
         Row: {
+          analise: Json | null
+          aprovado_em: string | null
+          aprovado_por: string | null
           concluido_em: string | null
           confianca_score: number | null
           created_at: string
           empresa_nome: string | null
+          enviado_em: string | null
           id: string
+          liberado_em: string | null
+          notas_admin: string | null
           rag_contexto: Json | null
           recomendacoes: Json | null
+          requer_aprovacao: boolean | null
           respostas: Json
           resumo_executivo: string | null
           score: number | null
           segmento: string | null
+          sla_horas: number | null
           status: Database["public"]["Enums"]["diagnostico_status"]
           updated_at: string
           user_id: string
         }
         Insert: {
+          analise?: Json | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
           concluido_em?: string | null
           confianca_score?: number | null
           created_at?: string
           empresa_nome?: string | null
+          enviado_em?: string | null
           id?: string
+          liberado_em?: string | null
+          notas_admin?: string | null
           rag_contexto?: Json | null
           recomendacoes?: Json | null
+          requer_aprovacao?: boolean | null
           respostas?: Json
           resumo_executivo?: string | null
           score?: number | null
           segmento?: string | null
+          sla_horas?: number | null
           status?: Database["public"]["Enums"]["diagnostico_status"]
           updated_at?: string
           user_id: string
         }
         Update: {
+          analise?: Json | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
           concluido_em?: string | null
           confianca_score?: number | null
           created_at?: string
           empresa_nome?: string | null
+          enviado_em?: string | null
           id?: string
+          liberado_em?: string | null
+          notas_admin?: string | null
           rag_contexto?: Json | null
           recomendacoes?: Json | null
+          requer_aprovacao?: boolean | null
           respostas?: Json
           resumo_executivo?: string | null
           score?: number | null
           segmento?: string | null
+          sla_horas?: number | null
           status?: Database["public"]["Enums"]["diagnostico_status"]
           updated_at?: string
           user_id?: string
@@ -497,6 +548,8 @@ export type Database = {
           oferta_externa_id: string | null
           preco_centavos: number | null
           produto_externo_id: string
+          requer_aprovacao: boolean
+          sla_horas: number
           updated_at: string
         }
         Insert: {
@@ -512,6 +565,8 @@ export type Database = {
           oferta_externa_id?: string | null
           preco_centavos?: number | null
           produto_externo_id: string
+          requer_aprovacao?: boolean
+          sla_horas?: number
           updated_at?: string
         }
         Update: {
@@ -527,6 +582,8 @@ export type Database = {
           oferta_externa_id?: string | null
           preco_centavos?: number | null
           produto_externo_id?: string
+          requer_aprovacao?: boolean
+          sla_horas?: number
           updated_at?: string
         }
         Relationships: []
@@ -646,6 +703,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aprovar_diagnostico: {
+        Args: { _diagnostico_id: string; _notas?: string }
+        Returns: undefined
+      }
       consumir_credito_diagnostico: {
         Args: { _diagnostico_id: string }
         Returns: boolean
@@ -665,6 +726,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      liberar_diagnosticos_pendentes: {
+        Args: never
+        Returns: {
+          diagnostico_id: string
+          email: string
+          user_id: string
+        }[]
       }
       match_knowledge: {
         Args: {
@@ -698,10 +767,21 @@ export type Database = {
           read_ct: number
         }[]
       }
+      reprovar_diagnostico: {
+        Args: { _diagnostico_id: string; _motivo: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
-      diagnostico_status: "rascunho" | "em_analise" | "concluido" | "arquivado"
+      diagnostico_status:
+        | "rascunho"
+        | "em_analise"
+        | "concluido"
+        | "arquivado"
+        | "aguardando_aprovacao"
+        | "liberado"
+        | "reprovado"
       knowledge_status: "pendente" | "aprovado" | "rejeitado"
     }
     CompositeTypes: {
@@ -831,7 +911,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
-      diagnostico_status: ["rascunho", "em_analise", "concluido", "arquivado"],
+      diagnostico_status: [
+        "rascunho",
+        "em_analise",
+        "concluido",
+        "arquivado",
+        "aguardando_aprovacao",
+        "liberado",
+        "reprovado",
+      ],
       knowledge_status: ["pendente", "aprovado", "rejeitado"],
     },
   },

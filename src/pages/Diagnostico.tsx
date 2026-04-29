@@ -140,10 +140,11 @@ const Diagnostico = () => {
       setAguardandoIA(diagId);
       // Análise profunda (Gemini Pro + reasoning high) leva 25-50s.
       // Realtime escuta UPDATE; este timeout é só safety net se realtime falhar.
+      // Quando a IA termina, o status vira 'aguardando_aprovacao' (não mais 'concluido').
       setTimeout(() => {
         setAguardandoIA((cur) => {
           if (cur === diagId) {
-            navigate(`/agendar/${diagId}`);
+            navigate('/inicio');
             return null;
           }
           return cur;
@@ -167,8 +168,8 @@ const Diagnostico = () => {
         },
         (payload) => {
           const status = (payload.new as { status?: string })?.status;
-          if (status === 'concluido') {
-            navigate(`/agendar/${aguardandoIA}`);
+          if (status === 'aguardando_aprovacao' || status === 'liberado') {
+            navigate('/inicio');
           }
         },
       )
@@ -190,13 +191,15 @@ const Diagnostico = () => {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <h2 className="text-xl font-semibold">Gerando sua análise estratégica…</h2>
+        <h2 className="text-xl font-semibold">Sua análise está sendo preparada…</h2>
         <p className="text-sm text-muted-foreground max-w-md">
-          Nossa IA está cruzando suas respostas com a base de conhecimento para produzir um diagnóstico profundo:
-          SWOT, gargalos com causa-raiz, roadmap 90/180/365 dias e recomendações acionáveis.
+          Nossa IA está cruzando suas respostas com a base de conhecimento e, em seguida,
+          nossa equipe revisa pessoalmente o resultado antes de te entregar. Isso garante
+          um diagnóstico profundo e confiável.
         </p>
         <p className="text-xs text-muted-foreground/70">
-          Isso pode levar até 1 minuto. Você será redirecionado automaticamente.
+          Você receberá uma notificação assim que estiver liberado (em até 24h).
+          Pode fechar esta página — vamos te avisar.
         </p>
       </div>
     );

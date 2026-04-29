@@ -9,6 +9,8 @@ project_id = "zggxtuyzynbrothraiaz"
     verify_jwt = false
   [functions.ingest-knowledge]
     verify_jwt = false
+  [functions.liberar-diagnosticos]
+    verify_jwt = false
   [functions.process-diagnostico]
     verify_jwt = false
   [functions.search-knowledge]
