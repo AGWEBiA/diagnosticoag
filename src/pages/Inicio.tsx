@@ -34,7 +34,8 @@ interface DiagnosticoResumo {
     | 'liberado'
     | 'reprovado'
     | 'concluido'
-    | 'arquivado';
+    | 'arquivado'
+    | 'bloqueado';
   empresa_nome: string | null;
   segmento: string | null;
   score: number | null;
@@ -45,6 +46,7 @@ interface DiagnosticoResumo {
   enviado_em: string | null;
   sla_horas: number | null;
   respostas: Record<string, unknown> | null;
+  bloqueio_motivo?: string | null;
 }
 
 const STATUS_LABEL: Record<DiagnosticoResumo['status'], string> = {
@@ -55,6 +57,7 @@ const STATUS_LABEL: Record<DiagnosticoResumo['status'], string> = {
   reprovado: 'Em reprocessamento',
   concluido: 'Concluído',
   arquivado: 'Arquivado',
+  bloqueado: 'Acesso bloqueado',
 };
 
 const STATUS_VARIANT: Record<DiagnosticoResumo['status'], 'default' | 'secondary' | 'outline'> = {
@@ -65,6 +68,7 @@ const STATUS_VARIANT: Record<DiagnosticoResumo['status'], 'default' | 'secondary
   reprovado: 'secondary',
   concluido: 'default',
   arquivado: 'outline',
+  bloqueado: 'secondary',
 };
 
 function previsaoTexto(d: { enviado_em: string | null; sla_horas: number | null }): string {
@@ -89,7 +93,7 @@ const Inicio = () => {
     queryFn: async (): Promise<DiagnosticoResumo[]> => {
       const { data, error } = await supabase
         .from('diagnosticos')
-        .select('id, status, empresa_nome, segmento, score, resumo_executivo, created_at, updated_at, concluido_em, enviado_em, sla_horas, respostas')
+        .select('id, status, empresa_nome, segmento, score, resumo_executivo, created_at, updated_at, concluido_em, enviado_em, sla_horas, respostas, bloqueio_motivo')
         .eq('user_id', user!.id)
         .order('updated_at', { ascending: false })
         .limit(5);
@@ -99,6 +103,7 @@ const Inicio = () => {
   });
 
   const ativo = diagnosticos?.[0];
+  const bloqueado = diagnosticos?.find((d) => d.status === 'bloqueado');
   const liberado = diagnosticos?.find(
     (d) => d.status === 'liberado' || d.status === 'concluido',
   );
@@ -118,6 +123,17 @@ const Inicio = () => {
 
   // Próxima ação principal
   const proxima = (() => {
+    if (bloqueado && !liberado) {
+      return {
+        titulo: 'Acesso ao diagnóstico bloqueado',
+        descricao:
+          bloqueado.bloqueio_motivo ??
+          'Sua compra foi estornada/reembolsada. Entre em contato com o suporte para regularizar.',
+        cta: 'Falar com suporte',
+        to: '/perfil',
+        icon: ClipboardList,
+      };
+    }
     if (liberado) {
       return {
         titulo: 'Seu diagnóstico está pronto',
