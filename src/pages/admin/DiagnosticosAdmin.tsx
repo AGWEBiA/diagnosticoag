@@ -652,6 +652,37 @@ const DiagnosticosAdmin = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={bloquearOpen} onOpenChange={setBloquearOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bloquear acesso ao diagnóstico</DialogTitle>
+            <DialogDescription>
+              Use em casos de reembolso ou chargeback. O cliente perde acesso imediatamente
+              à página premium e ao PDF.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            rows={4}
+            value={motivoBloquear}
+            onChange={(e) => setMotivoBloquear(e.target.value)}
+            placeholder="Ex.: Reembolso solicitado pelo cliente em XX/XX, chargeback Hotmart..."
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBloquearOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBloquear}
+              disabled={acting === 'bloquear'}
+            >
+              {acting === 'bloquear' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirmar bloqueio
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
