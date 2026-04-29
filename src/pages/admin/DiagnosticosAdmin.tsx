@@ -41,7 +41,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Eye, FileDown, Loader2, Check, X, MessageCircle } from 'lucide-react';
+import { Eye, FileDown, Loader2, Check, X, MessageCircle, Lock, Unlock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const PAGE_SIZE = 10;
@@ -53,7 +53,8 @@ type DiagStatus =
   | 'liberado'
   | 'reprovado'
   | 'concluido'
-  | 'arquivado';
+  | 'arquivado'
+  | 'bloqueado';
 type StatusFiltro = 'todos' | DiagStatus;
 
 interface DiagRow {
@@ -74,6 +75,8 @@ interface DiagRow {
   liberado_em: string | null;
   sla_horas: number | null;
   notas_admin: string | null;
+  bloqueio_motivo?: string | null;
+  bloqueado_em?: string | null;
 }
 
 const statusVariant: Record<DiagStatus, 'default' | 'secondary' | 'outline' | 'destructive'> = {
@@ -84,6 +87,7 @@ const statusVariant: Record<DiagStatus, 'default' | 'secondary' | 'outline' | 'd
   rascunho: 'outline',
   reprovado: 'destructive',
   arquivado: 'destructive',
+  bloqueado: 'destructive',
 };
 
 const DiagnosticosAdmin = () => {
@@ -94,9 +98,11 @@ const DiagnosticosAdmin = () => {
   const [viewing, setViewing] = useState<DiagRow | null>(null);
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [acting, setActing] = useState<'aprovar' | 'reprovar' | null>(null);
+  const [acting, setActing] = useState<'aprovar' | 'reprovar' | 'bloquear' | 'desbloquear' | null>(null);
   const [motivoReprovar, setMotivoReprovar] = useState('');
   const [reprovarOpen, setReprovarOpen] = useState(false);
+  const [motivoBloquear, setMotivoBloquear] = useState('');
+  const [bloquearOpen, setBloquearOpen] = useState(false);
   const [whatsapp, setWhatsapp] = useState<Record<string, string>>({});
 
   const handleGeneratePdf = async () => {
@@ -152,7 +158,7 @@ const DiagnosticosAdmin = () => {
       let q = supabase
         .from('diagnosticos')
         .select(
-          'id, user_id, empresa_nome, segmento, status, score, created_at, updated_at, resumo_executivo, recomendacoes, respostas, analise, enviado_em, aprovado_em, liberado_em, sla_horas, notas_admin',
+          'id, user_id, empresa_nome, segmento, status, score, created_at, updated_at, resumo_executivo, recomendacoes, respostas, analise, enviado_em, aprovado_em, liberado_em, sla_horas, notas_admin, bloqueio_motivo, bloqueado_em',
           { count: 'exact' }
         )
         .order('updated_at', { ascending: false })
@@ -246,6 +252,44 @@ const DiagnosticosAdmin = () => {
     await refetch();
   };
 
+  const handleBloquear = async () => {
+    if (!viewing) return;
+    if (motivoBloquear.trim().length < 5) {
+      toast({ title: 'Motivo obrigatório', description: 'Mínimo 5 caracteres.', variant: 'destructive' });
+      return;
+    }
+    setActing('bloquear');
+    const { error } = await supabase.rpc('bloquear_diagnostico', {
+      _diagnostico_id: viewing.id,
+      _motivo: motivoBloquear.trim(),
+    });
+    setActing(null);
+    if (error) {
+      toast({ title: 'Erro ao bloquear', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Diagnóstico bloqueado', description: 'O cliente perdeu acesso.' });
+    setBloquearOpen(false);
+    setMotivoBloquear('');
+    await refetch();
+  };
+
+  const handleDesbloquear = async () => {
+    if (!viewing) return;
+    if (!confirm('Restaurar o acesso do cliente a este diagnóstico?')) return;
+    setActing('desbloquear');
+    const { error } = await supabase.rpc('desbloquear_diagnostico', {
+      _diagnostico_id: viewing.id,
+    });
+    setActing(null);
+    if (error) {
+      toast({ title: 'Erro ao desbloquear', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Acesso restaurado' });
+    await refetch();
+  };
+
   const previsaoLiberacao = (d: DiagRow): string => {
     if (!d.enviado_em) return '';
     const previsao =
@@ -296,6 +340,7 @@ const DiagnosticosAdmin = () => {
                 <SelectItem value="reprovado">Reprovado</SelectItem>
                 <SelectItem value="concluido">Concluído</SelectItem>
                 <SelectItem value="arquivado">Arquivado</SelectItem>
+                <SelectItem value="bloqueado">Bloqueado</SelectItem>
               </SelectContent>
             </Select>
           </div>
