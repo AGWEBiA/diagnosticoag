@@ -20,6 +20,16 @@ interface KiwifyPayload {
   product?: { product_id?: string; product_name?: string };
   Subscription?: { plan?: { id?: string; name?: string } };
   subscription?: { plan?: { id?: string; name?: string } };
+  Commissions?: {
+    charge_amount?: number;
+    product_base_price?: number;
+    kiwify_fee?: number;
+    commissioned_stores?: Array<{ value?: number; type?: string; custom_name?: string }>;
+    my_commission?: number;
+    currency?: string;
+  };
+  commissions?: KiwifyPayload['Commissions'];
+  refund_reason?: string;
 }
 
 Deno.serve(async (req) => {
@@ -65,6 +75,24 @@ Deno.serve(async (req) => {
   const status = (payload.order_status ?? '').toLowerCase();
   const approved =
     /approved|paid/i.test(eventType) || ['paid', 'approved', 'completed'].includes(status);
+  const refunded =
+    /refund|chargeback|cancel|dispute/i.test(eventType) ||
+    ['refunded', 'chargeback', 'canceled', 'cancelled', 'disputed'].includes(status);
+
+  const transactionId = payload.order_id;
+
+  if (refunded && transactionId) {
+    const motivo = `Compra estornada (${eventType || status}). ${payload.refund_reason ?? ''}`.trim();
+    const { data: bloqueados, error: errBloq } = await supabase.rpc(
+      'bloquear_por_transacao_estornada',
+      { _transacao_id: transactionId, _motivo: motivo },
+    );
+    if (errBloq) console.error('[kiwify] erro ao bloquear', errBloq);
+    return new Response(
+      JSON.stringify({ ok: true, refunded: true, diagnosticos_bloqueados: bloqueados ?? 0 }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
+  }
 
   if (!approved) {
     return new Response(JSON.stringify({ ok: true, ignored: eventType || status }), {
@@ -75,9 +103,9 @@ Deno.serve(async (req) => {
   const customer = payload.Customer ?? payload.customer ?? {};
   const product = payload.Product ?? payload.product ?? {};
   const subscription = payload.Subscription ?? payload.subscription ?? {};
+  const commissions = payload.Commissions ?? payload.commissions ?? {};
 
   const email = customer.email?.toLowerCase().trim();
-  const transactionId = payload.order_id;
   const produtoExternoId = product.product_id ?? '';
   const ofertaExternaId = subscription.plan?.id ?? null;
 
@@ -124,6 +152,26 @@ Deno.serve(async (req) => {
   }
   const creditos = produto?.creditos_concedidos ?? 1;
 
+  // Kiwify devolve valores em centavos diretamente em "charge_amount", "kiwify_fee", etc.
+  const cents = (v: number | null | undefined) =>
+    v == null ? null : Math.round(Number(v));
+  const valorBrutoCentavos = cents(commissions.charge_amount);
+  const taxaGateway = cents(commissions.kiwify_fee);
+  const comissaoProdutor = cents(commissions.my_commission);
+  const stores = commissions.commissioned_stores ?? [];
+  const sumStores = (typeFilter: (t?: string) => boolean) =>
+    stores
+      .filter((s) => typeFilter(s.type))
+      .reduce((acc, s) => acc + (Number(s.value) || 0), 0);
+  const comissaoCoprodutor = cents(
+    sumStores((t) => /co.?producer|coprodutor/i.test(t ?? '')),
+  );
+  const comissaoAfiliado = cents(
+    sumStores((t) => /affiliate|afiliado/i.test(t ?? '')),
+  );
+  const moeda = commissions.currency ?? 'BRL';
+  const valorLiquidoCentavos = comissaoProdutor;
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('id')
@@ -142,6 +190,13 @@ Deno.serve(async (req) => {
     produto_id: produto?.id ?? null,
     transacao_externa_id: transactionId,
     email_comprador: email,
+    valor_bruto_centavos: valorBrutoCentavos,
+    taxa_gateway_centavos: taxaGateway,
+    comissao_produtor_centavos: comissaoProdutor,
+    comissao_coprodutor_centavos: comissaoCoprodutor,
+    comissao_afiliado_centavos: comissaoAfiliado,
+    valor_liquido_centavos: valorLiquidoCentavos,
+    moeda,
     metadata: { event: eventType, raw_product: produtoExternoId, oferta: ofertaExternaId, pendente },
   }));
   const { error: insertErr } = await supabase.from('creditos_diagnostico').insert(rows);

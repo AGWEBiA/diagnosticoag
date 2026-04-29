@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserAvatarMenu } from '@/components/UserAvatarMenu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   DiagnosticoDetalhes,
   type DiagnosticoAnalise,
@@ -19,6 +20,7 @@ import {
   CalendarCheck,
   FileDown,
   Loader2,
+  Lock,
   Sparkles,
   ShieldCheck,
   TrendingUp,
@@ -38,6 +40,7 @@ interface DiagnosticoFull {
   liberado_em: string | null;
   concluido_em: string | null;
   created_at: string;
+  bloqueio_motivo?: string | null;
 }
 
 const DiagnosticoPremium = () => {
@@ -54,7 +57,7 @@ const DiagnosticoPremium = () => {
       const { data, error } = await supabase
         .from('diagnosticos')
         .select(
-          'id, user_id, status, empresa_nome, segmento, score, resumo_executivo, recomendacoes, analise, liberado_em, concluido_em, created_at',
+          'id, user_id, status, empresa_nome, segmento, score, resumo_executivo, recomendacoes, analise, liberado_em, concluido_em, created_at, bloqueio_motivo',
         )
         .eq('id', id!)
         .maybeSingle();
@@ -63,9 +66,39 @@ const DiagnosticoPremium = () => {
     },
   });
 
-  // Bloqueia acesso se ainda não foi liberado
+  // Busca dias de carência do PDF a partir do produto vinculado ao crédito do diagnóstico
+  const { data: pdfMeta } = useQuery({
+    queryKey: ['pdf-carencia', id],
+    enabled: !!id && !!user && !!data,
+    queryFn: async () => {
+      const { data: cred } = await supabase
+        .from('creditos_diagnostico')
+        .select('created_at, produtos_pagamento:produto_id(pdf_disponivel_apos_dias)')
+        .eq('diagnostico_id', id!)
+        .maybeSingle();
+      const dias =
+        ((cred as { produtos_pagamento?: { pdf_disponivel_apos_dias?: number } | null } | null)
+          ?.produtos_pagamento?.pdf_disponivel_apos_dias) ?? 7;
+      return {
+        compraEm: (cred as { created_at?: string } | null)?.created_at ?? null,
+        dias,
+      };
+    },
+  });
+
+  // Bloqueia acesso se ainda não foi liberado OU se está bloqueado por estorno
   useEffect(() => {
     if (!data) return;
+    if (data.status === 'bloqueado') {
+      toast({
+        title: 'Acesso ao diagnóstico bloqueado',
+        description:
+          data.bloqueio_motivo ?? 'Compra estornada/reembolsada. Entre em contato com o suporte.',
+        variant: 'destructive',
+      });
+      navigate('/inicio', { replace: true });
+      return;
+    }
     const liberado = data.status === 'liberado' || data.status === 'concluido';
     if (!liberado) {
       toast({
@@ -76,8 +109,27 @@ const DiagnosticoPremium = () => {
     }
   }, [data, navigate, toast]);
 
+  // Cálculo da carência do PDF
+  const pdfReleaseDate = pdfMeta?.compraEm
+    ? new Date(new Date(pdfMeta.compraEm).getTime() + (pdfMeta.dias ?? 7) * 86400000)
+    : null;
+  const pdfDisponivel = !pdfReleaseDate || pdfReleaseDate.getTime() <= Date.now();
+  const diasRestantes = pdfReleaseDate
+    ? Math.max(0, Math.ceil((pdfReleaseDate.getTime() - Date.now()) / 86400000))
+    : 0;
+  const pdfTooltipMsg = pdfDisponivel
+    ? 'Baixar PDF do diagnóstico'
+    : `Disponível em ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'} (após período de garantia da compra)`;
+
   const handleDownloadPdf = async () => {
     if (!id) return;
+    if (!pdfDisponivel) {
+      toast({
+        title: 'PDF ainda não disponível',
+        description: pdfTooltipMsg,
+      });
+      return;
+    }
     setGeneratingPdf(true);
     try {
       const { data: res, error } = await supabase.functions.invoke('gerar-pdf-diagnostico', {
@@ -156,19 +208,30 @@ const DiagnosticoPremium = () => {
             </Link>
           </Button>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleDownloadPdf}
-              disabled={generatingPdf}
-            >
-              {generatingPdf ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <FileDown className="mr-2 h-4 w-4" />
-              )}
-              Baixar PDF
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleDownloadPdf}
+                      disabled={generatingPdf || !pdfDisponivel}
+                    >
+                      {generatingPdf ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : pdfDisponivel ? (
+                        <FileDown className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Lock className="mr-2 h-4 w-4" />
+                      )}
+                      {pdfDisponivel ? 'Baixar PDF' : `PDF em ${diasRestantes}d`}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{pdfTooltipMsg}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <UserAvatarMenu />
           </div>
         </div>
@@ -239,14 +302,31 @@ const DiagnosticoPremium = () => {
             </div>
 
             <div className="flex flex-col items-center justify-center gap-3 pt-4 sm:flex-row">
-              <Button size="lg" onClick={handleDownloadPdf} disabled={generatingPdf}>
-                {generatingPdf ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <FileDown className="mr-2 h-4 w-4" />
-                )}
-                Baixar relatório em PDF
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button
+                        size="lg"
+                        onClick={handleDownloadPdf}
+                        disabled={generatingPdf || !pdfDisponivel}
+                      >
+                        {generatingPdf ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : pdfDisponivel ? (
+                          <FileDown className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Lock className="mr-2 h-4 w-4" />
+                        )}
+                        {pdfDisponivel
+                          ? 'Baixar relatório em PDF'
+                          : `PDF disponível em ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}`}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{pdfTooltipMsg}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Button asChild size="lg" variant="outline">
                 <Link to={`/agendar/${data.id}`}>
                   <CalendarCheck className="mr-2 h-4 w-4" /> Agendar reunião estratégica

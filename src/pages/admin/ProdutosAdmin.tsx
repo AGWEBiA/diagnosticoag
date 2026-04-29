@@ -50,6 +50,8 @@ interface Produto {
   ativo: boolean;
   sla_horas: number;
   requer_aprovacao: boolean;
+  pdf_disponivel_apos_dias: number;
+  taxa_gateway_pct: number;
 }
 
 const EMPTY: Omit<Produto, 'id'> = {
@@ -65,6 +67,8 @@ const EMPTY: Omit<Produto, 'id'> = {
   ativo: true,
   sla_horas: 24,
   requer_aprovacao: true,
+  pdf_disponivel_apos_dias: 7,
+  taxa_gateway_pct: 0,
 };
 
 const ProdutosAdmin = () => {
@@ -113,6 +117,8 @@ const ProdutosAdmin = () => {
       ativo: p.ativo,
       sla_horas: p.sla_horas ?? 24,
       requer_aprovacao: p.requer_aprovacao ?? true,
+      pdf_disponivel_apos_dias: p.pdf_disponivel_apos_dias ?? 7,
+      taxa_gateway_pct: Number(p.taxa_gateway_pct ?? 0),
     });
     setPrecoReais(p.preco_centavos != null ? (p.preco_centavos / 100).toFixed(2) : '');
     setOpen(true);
@@ -142,6 +148,8 @@ const ProdutosAdmin = () => {
       ativo: form.ativo,
       sla_horas: Math.max(0, form.sla_horas),
       requer_aprovacao: form.requer_aprovacao,
+      pdf_disponivel_apos_dias: Math.max(0, form.pdf_disponivel_apos_dias),
+      taxa_gateway_pct: Math.max(0, Math.min(100, Number(form.taxa_gateway_pct) || 0)),
     };
 
     const { error } = editing
@@ -386,6 +394,42 @@ const ProdutosAdmin = () => {
                 <p className="mt-1 text-xs text-muted-foreground">
                   Tempo mínimo entre o envio do formulário e a liberação ao cliente.
                   Use 0 para liberação imediata após aprovação.
+                </p>
+              </div>
+              <div>
+                <Label>Carência para baixar PDF (dias)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.pdf_disponivel_apos_dias}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      pdf_disponivel_apos_dias: Math.max(0, Number(e.target.value)),
+                    })
+                  }
+                  placeholder="7"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Dias após a confirmação da compra para liberar o download do PDF.
+                  Padrão: 7 dias (alinhado a políticas de reembolso).
+                </p>
+              </div>
+              <div>
+                <Label>Taxa estimada do gateway (%)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  max={100}
+                  value={form.taxa_gateway_pct}
+                  onChange={(e) =>
+                    setForm({ ...form, taxa_gateway_pct: Number(e.target.value) })
+                  }
+                  placeholder="9.9"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Usada no painel financeiro como fallback quando o webhook não envia o valor da taxa.
                 </p>
               </div>
             </div>
