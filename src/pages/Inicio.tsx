@@ -27,7 +27,14 @@ import { TOTAL_ETAPAS } from '@/config/diagnosticoSchema';
 
 interface DiagnosticoResumo {
   id: string;
-  status: 'rascunho' | 'em_analise' | 'concluido' | 'arquivado';
+  status:
+    | 'rascunho'
+    | 'em_analise'
+    | 'aguardando_aprovacao'
+    | 'liberado'
+    | 'reprovado'
+    | 'concluido'
+    | 'arquivado';
   empresa_nome: string | null;
   segmento: string | null;
   score: number | null;
@@ -35,12 +42,17 @@ interface DiagnosticoResumo {
   created_at: string;
   updated_at: string;
   concluido_em: string | null;
+  enviado_em: string | null;
+  sla_horas: number | null;
   respostas: Record<string, unknown> | null;
 }
 
 const STATUS_LABEL: Record<DiagnosticoResumo['status'], string> = {
   rascunho: 'Em preenchimento',
-  em_analise: 'Em análise',
+  em_analise: 'Em análise pela IA',
+  aguardando_aprovacao: 'Em revisão pela equipe',
+  liberado: 'Pronto',
+  reprovado: 'Em reprocessamento',
   concluido: 'Concluído',
   arquivado: 'Arquivado',
 };
@@ -48,6 +60,9 @@ const STATUS_LABEL: Record<DiagnosticoResumo['status'], string> = {
 const STATUS_VARIANT: Record<DiagnosticoResumo['status'], 'default' | 'secondary' | 'outline'> = {
   rascunho: 'secondary',
   em_analise: 'outline',
+  aguardando_aprovacao: 'outline',
+  liberado: 'default',
+  reprovado: 'secondary',
   concluido: 'default',
   arquivado: 'outline',
 };
@@ -63,7 +78,7 @@ const Inicio = () => {
     queryFn: async (): Promise<DiagnosticoResumo[]> => {
       const { data, error } = await supabase
         .from('diagnosticos')
-        .select('id, status, empresa_nome, segmento, score, resumo_executivo, created_at, updated_at, concluido_em, respostas')
+        .select('id, status, empresa_nome, segmento, score, resumo_executivo, created_at, updated_at, concluido_em, enviado_em, sla_horas, respostas')
         .eq('user_id', user!.id)
         .order('updated_at', { ascending: false })
         .limit(5);
@@ -73,8 +88,12 @@ const Inicio = () => {
   });
 
   const ativo = diagnosticos?.[0];
-  const concluido = diagnosticos?.find((d) => d.status === 'concluido');
-  const emAnalise = diagnosticos?.find((d) => d.status === 'em_analise');
+  const liberado = diagnosticos?.find(
+    (d) => d.status === 'liberado' || d.status === 'concluido',
+  );
+  const emAnalise = diagnosticos?.find(
+    (d) => d.status === 'em_analise' || d.status === 'aguardando_aprovacao',
+  );
   const rascunho = diagnosticos?.find((d) => d.status === 'rascunho');
 
   // Progresso do rascunho
@@ -88,21 +107,28 @@ const Inicio = () => {
 
   // Próxima ação principal
   const proxima = (() => {
-    if (concluido) {
+    if (liberado) {
       return {
-        titulo: 'Agende sua reunião de entrega',
-        descricao: 'Seu diagnóstico está pronto. Agende um horário para revisarmos juntos.',
-        cta: 'Agendar reunião',
-        to: `/agendar/${concluido.id}`,
-        icon: CalendarCheck,
+        titulo: 'Seu diagnóstico está pronto',
+        descricao: 'Acesse a análise estratégica completa do seu negócio agora.',
+        cta: 'Ver diagnóstico',
+        to: `/diagnostico/${liberado.id}`,
+        icon: Sparkles,
       };
     }
     if (emAnalise) {
+      const previsao = previsaoTexto(emAnalise);
       return {
-        titulo: 'Análise em andamento',
-        descricao: 'Estamos processando suas respostas com IA. Isso costuma levar poucos minutos.',
+        titulo:
+          emAnalise.status === 'aguardando_aprovacao'
+            ? 'Em revisão pela nossa equipe'
+            : 'Análise em andamento',
+        descricao:
+          emAnalise.status === 'aguardando_aprovacao'
+            ? `Nossa equipe está revisando seu diagnóstico antes de liberar.${previsao ? ' ' + previsao : ''}`
+            : 'Estamos processando suas respostas com IA. Em seguida, nossa equipe revisa antes de liberar.',
         cta: 'Ver status',
-        to: '/diagnostico',
+        to: '/inicio',
         icon: Sparkles,
       };
     }
@@ -235,9 +261,9 @@ const Inicio = () => {
               <CardTitle className="text-3xl">
                 {loadingDiag ? (
                   <Skeleton className="h-9 w-16" />
-                ) : concluido?.score != null ? (
+                ) : liberado?.score != null ? (
                   <span>
-                    {concluido.score}
+                    {liberado.score}
                     <span className="text-base font-normal text-muted-foreground">/100</span>
                   </span>
                 ) : (
@@ -278,16 +304,32 @@ const Inicio = () => {
                   <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-4 text-sm">
                     <Clock className="h-5 w-5 text-primary" />
                     <span>
-                      Sua análise está sendo processada. Você receberá uma notificação quando estiver pronta.
+                      Sua análise está sendo processada pela IA. Em seguida nossa equipe revisa antes de liberar.
                     </span>
                   </div>
                 )}
-                {ativo.status === 'concluido' && ativo.resumo_executivo && (
+                {ativo.status === 'aguardando_aprovacao' && (
+                  <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-4 text-sm">
+                    <Clock className="h-5 w-5 text-primary" />
+                    <span>
+                      Em revisão pela nossa equipe.{' '}
+                      {previsaoTexto(ativo) ||
+                        'Você será notificado em até 24h.'}
+                    </span>
+                  </div>
+                )}
+                {(ativo.status === 'liberado' || ativo.status === 'concluido') &&
+                  ativo.resumo_executivo && (
                   <div>
                     <h3 className="text-sm font-semibold">Resumo executivo</h3>
                     <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">
                       {ativo.resumo_executivo}
                     </p>
+                    <Button asChild size="sm" className="mt-3">
+                      <Link to={`/diagnostico/${ativo.id}`}>
+                        Ver diagnóstico completo <ArrowRight className="ml-1 h-4 w-4" />
+                      </Link>
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -304,12 +346,19 @@ const Inicio = () => {
                     <ClipboardList className="mr-2 h-4 w-4" /> Meu diagnóstico
                   </Link>
                 </Button>
-                {concluido && (
-                  <Button asChild variant="outline" className="w-full justify-start">
-                    <Link to={`/agendar/${concluido.id}`}>
-                      <CalendarCheck className="mr-2 h-4 w-4" /> Agendar reunião
-                    </Link>
-                  </Button>
+                {liberado && (
+                  <>
+                    <Button asChild variant="outline" className="w-full justify-start">
+                      <Link to={`/diagnostico/${liberado.id}`}>
+                        <FileText className="mr-2 h-4 w-4" /> Ver diagnóstico
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full justify-start">
+                      <Link to={`/agendar/${liberado.id}`}>
+                        <CalendarCheck className="mr-2 h-4 w-4" /> Agendar reunião
+                      </Link>
+                    </Button>
+                  </>
                 )}
                 <Button asChild variant="outline" className="w-full justify-start">
                   <Link to="/comprar">
@@ -347,9 +396,9 @@ const Inicio = () => {
                         Atualizado em {new Date(d.updated_at).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
-                    {d.status === 'concluido' && (
+                    {(d.status === 'liberado' || d.status === 'concluido') && (
                       <Button asChild size="sm" variant="ghost">
-                        <Link to={`/agendar/${d.id}`}>
+                        <Link to={`/diagnostico/${d.id}`}>
                           Ver <ArrowRight className="ml-1 h-4 w-4" />
                         </Link>
                       </Button>
