@@ -157,7 +157,7 @@ const Landing = () => {
           <div className="pointer-events-none absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
           <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
 
-          <div className="container mx-auto px-4 py-20 md:py-28">
+          <div className="container mx-auto px-4 py-12 md:py-16">
             <div className="mx-auto max-w-4xl text-center">
               <Badge
                 variant="secondary"
@@ -215,7 +215,7 @@ const Landing = () => {
         </section>
 
         {/* PROBLEMA + SOLUÇÃO */}
-        <section className="border-b py-20 md:py-24">
+        <section className="border-b py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -275,7 +275,7 @@ const Landing = () => {
         </section>
 
         {/* PRODUTOS */}
-        <section id="produtos" className="border-b bg-muted/30 py-20 md:py-24">
+        <section id="produtos" className="border-b bg-muted/30 py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Qual é o seu próximo passo?</h2>
@@ -455,7 +455,7 @@ const Landing = () => {
         </section>
 
         {/* AUTORIDADE */}
-        <section className="border-b py-20 md:py-24">
+        <section className="border-b py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-5xl">
               <div className="text-center">
@@ -537,7 +537,7 @@ const Landing = () => {
         </section>
 
         {/* QUEM SOU EU */}
-        <section id="quem-sou-eu" className="border-b bg-muted/30 py-20 md:py-24">
+        <section id="quem-sou-eu" className="border-b bg-muted/30 py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[auto_1fr] md:gap-14">
               <div className="mx-auto md:mx-0">
@@ -599,7 +599,7 @@ const Landing = () => {
         </section>
 
         {/* DEPOIMENTOS */}
-        <section className="border-b py-20 md:py-24">
+        <section className="border-b py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <Badge variant="secondary" className="mb-3">
@@ -634,7 +634,7 @@ const Landing = () => {
 
 
         {/* FAQ */}
-        <section className="border-b py-20 md:py-24">
+        <section className="border-b py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <div className="text-center">
@@ -679,7 +679,7 @@ const Landing = () => {
         </section>
 
         {/* URGÊNCIA */}
-        <section className="border-b bg-gradient-to-br from-accent/40 via-background to-background py-20 md:py-24">
+        <section className="border-b bg-gradient-to-br from-accent/40 via-background to-background py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <div className="text-center">
@@ -738,7 +738,7 @@ const Landing = () => {
         </section>
 
         {/* GARANTIA + CTA FINAL */}
-        <section className="border-b bg-gradient-to-br from-primary/5 via-background to-background py-20 md:py-24">
+        <section className="border-b bg-gradient-to-br from-primary/5 via-background to-background py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
