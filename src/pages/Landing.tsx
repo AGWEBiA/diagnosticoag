@@ -157,7 +157,7 @@ const Landing = () => {
           <div className="pointer-events-none absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
           <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
 
-          <div className="container mx-auto px-4 py-12 md:py-16">
+          <div className="container mx-auto px-4 section-hero">
             <div className="mx-auto max-w-4xl text-center">
               <Badge
                 variant="secondary"
@@ -172,15 +172,15 @@ const Landing = () => {
                   onde seu negócio digital está travado
                 </span>
               </h1>
-              <p className="mt-6 text-xl font-medium text-muted-foreground md:text-2xl">
+              <p className="mt-4 md:mt-6 text-xl font-medium text-muted-foreground md:text-2xl">
                 ...e o que <span className="font-semibold text-foreground">impede ele de crescer</span>.
               </p>
-              <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
+              <p className="mx-auto mt-4 md:mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
                 Análise profunda com IA Proprietária + Equipe de Especialistas + estratégia personalizada baseada em{' '}
                 <strong className="text-foreground">10+ anos</strong> de experiência gerenciando{' '}
                 <strong className="text-foreground">+R$ 40 milhões</strong> em resultados digitais.
               </p>
-              <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <div className="mt-8 md:mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button
                   asChild
                   size="lg"
@@ -199,7 +199,7 @@ const Landing = () => {
                   <Link to="/como-funciona">Como funciona</Link>
                 </Button>
               </div>
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-x-3 gap-y-3 text-sm">
+              <div className="mt-6 md:mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-3 text-sm">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-muted-foreground shadow-soft backdrop-blur">
                   <ShieldCheck className="h-4 w-4 text-primary" /> Garantia de 7 dias
                 </span>
@@ -215,7 +215,7 @@ const Landing = () => {
         </section>
 
         {/* PROBLEMA + SOLUÇÃO */}
-        <section className="border-b py-12 md:py-16">
+        <section className="section border-b">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -235,14 +235,14 @@ const Landing = () => {
               </div>
 
               {/* Conector com autoridade */}
-              <p className="mt-8 text-lg text-foreground">
+              <p className="section-block-gap text-lg text-foreground">
                 Depois de 10+ anos no mercado, gerenciando mais de <strong>R$ 40 milhões</strong> em resultados
                 digitais e atendendo empresas como SENAI, Coca-Cola e Grupo Jovem Pan, descobri o porquê dos
                 negócios digitais não crescerem — e é algo que você também faz errado hoje.
               </p>
 
               {/* Destaque */}
-              <blockquote className="relative my-8 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-6 shadow-elevated md:p-8">
+              <blockquote className="relative my-6 md:my-8 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-6 shadow-elevated md:p-8">
                 <div className="absolute left-0 top-0 h-full w-1 bg-gradient-primary" />
                 <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
                 <p className="text-lg font-semibold leading-relaxed text-foreground md:text-xl">
@@ -275,14 +275,14 @@ const Landing = () => {
         </section>
 
         {/* PRODUTOS */}
-        <section id="produtos" className="border-b bg-muted/30 py-12 md:py-16">
+        <section id="produtos" className="section border-b bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Qual é o seu próximo passo?</h2>
-              <p className="mt-3 text-muted-foreground">Escolha a opção que melhor se encaixa no seu momento.</p>
+              <p className="section-header-gap text-muted-foreground">Escolha a opção que melhor se encaixa no seu momento.</p>
             </div>
 
-            <div className="mx-auto mt-12 grid max-w-5xl gap-6 lg:grid-cols-2">
+            <div className="mx-auto section-body-gap grid max-w-5xl gap-6 lg:grid-cols-2">
               {/* Diagnóstico Rápido */}
               <Card className="flex flex-col">
                 <CardContent className="flex flex-1 flex-col p-8">
@@ -408,7 +408,7 @@ const Landing = () => {
             </div>
 
             {/* Comparativo */}
-            <div className="mx-auto mt-16 max-w-4xl">
+            <div className="mx-auto section-body-gap max-w-4xl">
               <h3 className="mb-6 text-center text-2xl font-bold">Compare aqui os dois planos de diagnóstico e veja o que melhor funciona pra você</h3>
               <div className="overflow-hidden rounded-lg border bg-card">
                 <table className="w-full text-sm">
@@ -455,7 +455,7 @@ const Landing = () => {
         </section>
 
         {/* AUTORIDADE */}
-        <section className="border-b py-12 md:py-16">
+        <section className="section border-b">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-5xl">
               <div className="text-center">
@@ -469,7 +469,7 @@ const Landing = () => {
                 <p className="mt-2 font-semibold text-foreground">Aqui estão os números:</p>
               </div>
 
-              <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-12 grid gap-4 md:gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {[
                   {
                     icon: TrendingUp,
@@ -519,15 +519,15 @@ const Landing = () => {
                 ))}
               </div>
 
-              <div className="mx-auto mt-12 max-w-3xl rounded-lg border bg-card p-6 text-center md:p-8">
+              <div className="mx-auto section-body-gap max-w-3xl rounded-lg border bg-card p-6 text-center md:p-8">
                 <p className="text-2xl font-bold">Não é sorte. É SISTEMA.</p>
-                <p className="mt-3 text-muted-foreground">
+                <p className="section-header-gap text-muted-foreground">
                   E esse sistema funciona porque é baseado em <strong className="text-foreground">dados reais</strong>,{' '}
                   <strong className="text-foreground">experiência prática</strong>,{' '}
                   <strong className="text-foreground">resultados comprovados</strong> e{' '}
                   <strong className="text-foreground">metodologia estruturada</strong>.
                 </p>
-                <p className="mt-3 text-muted-foreground">
+                <p className="section-header-gap text-muted-foreground">
                   Quando você contrata um diagnóstico comigo, não está pagando por opinião. Está pagando por
                   conhecimento que levou 10+ anos para construir e que já gerou R$ 40 milhões em resultados para outros clientes.
                 </p>
@@ -537,9 +537,9 @@ const Landing = () => {
         </section>
 
         {/* QUEM SOU EU */}
-        <section id="quem-sou-eu" className="border-b bg-muted/30 py-12 md:py-16">
+        <section id="quem-sou-eu" className="section border-b bg-muted/30">
           <div className="container mx-auto px-4">
-            <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[auto_1fr] md:gap-14">
+            <div className="mx-auto grid max-w-5xl items-center gap-8 md:grid-cols-[auto_1fr] md:gap-12">
               <div className="mx-auto md:mx-0">
                 <div className="relative">
                   <div className="absolute -inset-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 blur-xl" />
@@ -599,18 +599,18 @@ const Landing = () => {
         </section>
 
         {/* DEPOIMENTOS */}
-        <section className="border-b py-12 md:py-16">
+        <section className="section border-b">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <Badge variant="secondary" className="mb-3">
                 <Video className="mr-1 h-3 w-3" /> Depoimentos em vídeo
               </Badge>
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">O que dizem meus clientes</h2>
-              <p className="mt-3 text-muted-foreground">
+              <p className="section-header-gap text-muted-foreground">
                 Resultados reais, na voz de quem viveu. Clique no play para assistir.
               </p>
             </div>
-            <div className="mx-auto mt-12 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mx-auto section-body-gap grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {TESTIMONIALS.map((t) => (
                 <Card key={t.videoId} className="overflow-hidden">
                   <YouTubeLite videoId={t.videoId} title={`${t.name} — Depoimento`} />
@@ -634,12 +634,12 @@ const Landing = () => {
 
 
         {/* FAQ */}
-        <section className="border-b py-12 md:py-16">
+        <section className="section border-b">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <div className="text-center">
                 <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Perguntas frequentes</h2>
-                <p className="mt-3 text-muted-foreground">Tire suas dúvidas antes de contratar.</p>
+                <p className="section-header-gap text-muted-foreground">Tire suas dúvidas antes de contratar.</p>
               </div>
               <Accordion type="single" collapsible className="mt-10 w-full">
                 {[
@@ -679,7 +679,7 @@ const Landing = () => {
         </section>
 
         {/* URGÊNCIA */}
-        <section className="border-b bg-gradient-to-br from-accent/40 via-background to-background py-12 md:py-16">
+        <section className="section-tight border-b bg-gradient-to-br from-accent/40 via-background to-background">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <div className="text-center">
@@ -694,26 +694,26 @@ const Landing = () => {
                 </p>
               </div>
 
-              <div className="mt-10 space-y-4 text-lg text-muted-foreground">
+              <div className="section-body-gap space-y-4 text-lg text-muted-foreground">
                 <p>
                   Cada dia que passa sem saber qual é o seu gargalo... cada dia que você continua com a estratégia
                   errada... cada dia que você não tem um plano... é dinheiro que você está perdendo.
                 </p>
               </div>
 
-              <Card className="mt-8 border-primary/40">
+              <Card className="section-block-gap border-primary/40">
                 <CardContent className="p-6 md:p-8">
                   <div className="flex items-start gap-3">
                     <DollarSign className="mt-1 h-6 w-6 shrink-0 text-primary" />
                     <div>
                       <p className="font-semibold text-foreground">Faça a conta:</p>
-                      <p className="mt-2 text-muted-foreground">
+                      <p className="section-header-gap text-muted-foreground">
                         Se você fatura <strong className="text-foreground">R$ 10 mil/mês</strong> e está deixando{' '}
                         <strong className="text-foreground">20% na mesa</strong>, são{' '}
                         <strong className="text-foreground">R$ 2 mil/mês</strong> perdidos.{' '}
                         <strong className="text-foreground">R$ 24 mil por ano.</strong>
                       </p>
-                      <p className="mt-3 text-muted-foreground">
+                      <p className="section-header-gap text-muted-foreground">
                         Um diagnóstico de R$ 197 que recupera apenas 10% disso{' '}
                         <strong className="text-foreground">se paga em dias</strong>.
                       </p>
@@ -722,11 +722,11 @@ const Landing = () => {
                 </CardContent>
               </Card>
 
-              <p className="mt-8 text-center text-lg font-semibold text-foreground">
+              <p className="section-block-gap text-center text-lg font-semibold text-foreground">
                 Não pense em quanto você vai gastar. Pense em quanto você vai ganhar.
               </p>
 
-              <div className="mt-8 flex justify-center">
+              <div className="section-block-gap flex justify-center">
                 <Button asChild size="lg">
                   <a href="#produtos">
                     Quero contratar agora <ArrowRight className="ml-2 h-4 w-4" />
@@ -738,7 +738,7 @@ const Landing = () => {
         </section>
 
         {/* GARANTIA + CTA FINAL */}
-        <section className="border-b bg-gradient-to-br from-primary/5 via-background to-background py-12 md:py-16">
+        <section className="section-tight border-b bg-gradient-to-br from-primary/5 via-background to-background">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
@@ -758,7 +758,7 @@ const Landing = () => {
                 <strong className="text-foreground">acionável</strong>. O único "risco" é você não agir com base
                 nas recomendações.
               </p>
-              <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <div className="mt-8 md:mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button asChild size="lg" className="w-full sm:w-auto">
                   <Link to={ctaHref}>
                     Contratar Diagnóstico Completo (R$ 297) <ArrowRight className="ml-2 h-4 w-4" />
