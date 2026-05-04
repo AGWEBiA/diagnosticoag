@@ -176,11 +176,36 @@ const DiagnosticoPremium = () => {
     );
   }
 
-  const analise = (data.analise ?? data.recomendacoes ?? null) as DiagnosticoAnalise | null;
-  const liberadoEm = data.liberado_em ?? data.concluido_em;
-
-  return (
-    <div className="min-h-screen bg-background">
+   if (data?.status === 'bloqueado') {
+     return (
+       <div className="min-h-screen bg-background flex items-center justify-center p-4">
+         <Card className="max-w-md w-full border-destructive/30">
+           <CardContent className="pt-10 pb-10 text-center space-y-6">
+             <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+               <Lock className="h-8 w-8 text-destructive" />
+             </div>
+             <div className="space-y-2">
+               <h2 className="text-2xl font-bold tracking-tight">Acesso Bloqueado</h2>
+               <p className="text-muted-foreground">
+                 {data.bloqueio_motivo || 'Este diagnóstico foi bloqueado devido a uma irregularidade no pagamento ou estorno da compra.'}
+               </p>
+             </div>
+             <div className="pt-4 flex flex-col gap-3">
+               <Button asChild variant="default" className="w-full">
+                 <a href="mailto:suporte@exemplo.com">Falar com Suporte</a>
+               </Button>
+               <Button asChild variant="ghost" className="w-full">
+                 <Link to="/inicio">Voltar ao Início</Link>
+               </Button>
+             </div>
+           </CardContent>
+         </Card>
+       </div>
+     );
+   }
+ 
+   const analise = (data.analise ?? data.recomendacoes ?? null) as DiagnosticoAnalise | null;
+   const liberadoEm = data.liberado_em ?? data.concluido_em;
       <Helmet>
         <title>{`Diagnóstico ${data.empresa_nome ?? ''} | Análise Estratégica`}</title>
         <meta
