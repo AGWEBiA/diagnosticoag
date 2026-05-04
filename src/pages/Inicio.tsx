@@ -11,10 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserAvatarMenu } from '@/components/UserAvatarMenu';
-import {
-  ArrowRight,
-  ClipboardList,
-  CalendarCheck,
+ import {
+   ArrowRight,
+   ClipboardList,
+   CalendarCheck,
+   Lock,
   FileText,
   ShoppingCart,
   Sparkles,
