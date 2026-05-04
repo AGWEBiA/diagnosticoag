@@ -123,18 +123,20 @@ const Inicio = () => {
   const nome = profile?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? '';
 
   // Próxima ação principal
-  const proxima = (() => {
-    if (bloqueado && !liberado) {
-      return {
-        titulo: 'Acesso ao diagnóstico bloqueado',
-        descricao:
-          bloqueado.bloqueio_motivo ??
-          'Sua compra foi estornada/reembolsada. Entre em contato com o suporte para regularizar.',
-        cta: 'Falar com suporte',
-        to: '/perfil',
-        icon: ClipboardList,
-      };
-    }
+   const proxima = (() => {
+     if (bloqueado && !liberado) {
+       return {
+         titulo: 'Acesso ao diagnóstico bloqueado',
+         descricao:
+           bloqueado.bloqueio_motivo ??
+           'Sua compra foi estornada/reembolsada. Entre em contato com o suporte para regularizar.',
+         cta: 'Falar com suporte',
+         href: 'mailto:suporte@exemplo.com',
+         icon: Lock,
+         variant: 'destructive' as const,
+         to: '', // fallback
+       };
+     }
     if (liberado) {
       return {
         titulo: 'Seu diagnóstico está pronto',
