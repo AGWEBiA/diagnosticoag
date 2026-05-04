@@ -1,5 +1,5 @@
  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
- import { render } from 'npm:@react-email/render@0.0.32';
+ import { render } from 'npm:@react-email/render@2.0.8';
  import { BloqueioEmail } from '../_shared/email-templates/diagnostico-bloqueado.tsx';
  import * as React from 'npm:react@18.3.1';
  
