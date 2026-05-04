@@ -86,19 +86,9 @@ const DiagnosticoPremium = () => {
     },
   });
 
-  // Bloqueia acesso se ainda não foi liberado OU se está bloqueado por estorno
-  useEffect(() => {
-    if (!data) return;
-    if (data.status === 'bloqueado') {
-      toast({
-        title: 'Acesso ao diagnóstico bloqueado',
-        description:
-          data.bloqueio_motivo ?? 'Compra estornada/reembolsada. Entre em contato com o suporte.',
-        variant: 'destructive',
-      });
-      navigate('/inicio', { replace: true });
-      return;
-    }
+   // Bloqueia acesso se ainda não foi liberado
+   useEffect(() => {
+     if (!data || data.status === 'bloqueado') return;
     const liberado = data.status === 'liberado' || data.status === 'concluido';
     if (!liberado) {
       toast({
