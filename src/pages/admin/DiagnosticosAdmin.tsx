@@ -268,10 +268,20 @@ const DiagnosticosAdmin = () => {
       toast({ title: 'Erro ao bloquear', description: error.message, variant: 'destructive' });
       return;
     }
-    toast({ title: 'Diagnóstico bloqueado', description: 'O cliente perdeu acesso.' });
-    setBloquearOpen(false);
-    setMotivoBloquear('');
-    await refetch();
+     toast({ title: 'Diagnóstico bloqueado', description: 'Enviando notificação ao cliente...' });
+     
+     // Dispara notificação por e-mail
+     try {
+       await supabase.functions.invoke('notificar-bloqueio', {
+         body: { diagnostico_id: viewing.id, motivo: motivoBloquear.trim() },
+       });
+     } catch (notifErr) {
+       console.error('Erro ao notificar bloqueio:', notifErr);
+     }
+ 
+     setBloquearOpen(false);
+     setMotivoBloquear('');
+     await refetch();
   };
 
   const handleDesbloquear = async () => {

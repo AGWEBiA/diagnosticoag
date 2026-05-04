@@ -92,7 +92,28 @@ Deno.serve(async (req) => {
       'bloquear_por_transacao_estornada',
       { _transacao_id: transactionId, _motivo: motivo },
     );
-    if (errBloq) console.error('[hotmart] erro ao bloquear', errBloq);
+     if (errBloq) {
+       console.error('[hotmart] erro ao bloquear', errBloq);
+     } else {
+       // 4. Notifica usuários bloqueados (operação em segundo plano/fire-and-forget no edge)
+       try {
+         const { data: diagIds } = await supabase
+           .from('creditos_diagnostico')
+           .select('diagnostico_id')
+           .eq('transacao_externa_id', transactionId)
+           .not('diagnostico_id', 'is', null);
+         
+         if (diagIds && diagIds.length > 0) {
+           for (const { diagnostico_id } of diagIds) {
+             await supabase.functions.invoke('notificar-bloqueio', {
+               body: { diagnostico_id, motivo },
+             });
+           }
+         }
+       } catch (notifErr) {
+         console.error('[hotmart] erro ao notificar bloqueio', notifErr);
+       }
+     }
     return new Response(
       JSON.stringify({ ok: true, refunded: true, diagnosticos_bloqueados: bloqueados ?? 0 }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
