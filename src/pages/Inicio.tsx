@@ -223,25 +223,39 @@ const Inicio = () => {
           </p>
         </section>
 
-        {/* Próxima ação destacada */}
-        <Card className="mb-8 overflow-hidden border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background">
-          <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <ProximaIcon className="h-6 w-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold">{proxima.titulo}</h2>
-                <p className="mt-1 text-muted-foreground">{proxima.descricao}</p>
-              </div>
-            </div>
-            <Button asChild size="lg" className="shrink-0">
-              <Link to={proxima.to}>
-                {proxima.cta} <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+         {/* Próxima ação destacada */}
+         <Card 
+           className={`mb-8 overflow-hidden border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background ${
+             (proxima as any).variant === 'destructive' ? 'border-destructive/50 bg-destructive/5' : ''
+           }`}
+         >
+           <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+             <div className="flex items-start gap-4">
+               <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
+                 (proxima as any).variant === 'destructive' ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground'
+               }`}>
+                 <ProximaIcon className="h-6 w-6" />
+               </div>
+               <div>
+                 <h2 className="text-xl font-semibold">{proxima.titulo}</h2>
+                 <p className="mt-1 text-muted-foreground">{proxima.descricao}</p>
+               </div>
+             </div>
+             {(proxima as any).href ? (
+               <Button asChild size="lg" variant={(proxima as any).variant || 'default'} className="shrink-0">
+                 <a href={(proxima as any).href}>
+                   {proxima.cta} <ArrowRight className="ml-2 h-4 w-4" />
+                 </a>
+               </Button>
+             ) : (
+               <Button asChild size="lg" variant={(proxima as any).variant || 'default'} className="shrink-0">
+                 <Link to={(proxima as any).to}>
+                   {proxima.cta} <ArrowRight className="ml-2 h-4 w-4" />
+                 </Link>
+               </Button>
+             )}
+           </CardContent>
+         </Card>
 
         {/* Stats: créditos + último diagnóstico */}
         <section className="mb-8 grid gap-4 md:grid-cols-3">
