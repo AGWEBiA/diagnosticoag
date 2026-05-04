@@ -205,8 +205,11 @@ const DiagnosticoPremium = () => {
    }
  
    const analise = (data.analise ?? data.recomendacoes ?? null) as DiagnosticoAnalise | null;
-   const liberadoEm = data.liberado_em ?? data.concluido_em;
-      <Helmet>
+    const liberadoEm = data.liberado_em ?? data.concluido_em;
+ 
+   return (
+     <div className="min-h-screen bg-background">
+       <Helmet>
         <title>{`Diagnóstico ${data.empresa_nome ?? ''} | Análise Estratégica`}</title>
         <meta
           name="description"
